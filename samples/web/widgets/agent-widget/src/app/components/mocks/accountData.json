@@ -1,0 +1,30 @@
+{
+  "accounts": [
+    {
+      "id": "acc-001",
+      "name": "Premium Checking",
+      "type": "checking",
+      "balance": 12458.32,
+      "accountNumber": "****3847",
+      "status": "active"
+    },
+    {
+      "id": "acc-002",
+      "name": "Savings Account",
+      "type": "savings",
+      "balance": 45230.18,
+      "accountNumber": "****7621",
+      "status": "active"
+    },
+    {
+      "id": "acc-003",
+      "name": "Investment Portfolio",
+      "type": "investment",
+      "balance": 128500.00,
+      "accountNumber": "****9402",
+      "status": "active"
+    }
+  ],
+  "totalBalance": 25.50
+}
+

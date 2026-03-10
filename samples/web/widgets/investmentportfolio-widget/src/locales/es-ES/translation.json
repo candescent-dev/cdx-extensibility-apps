@@ -1,0 +1,22 @@
+{
+  "com.ncr.dbk.olb.widgets.investmentportfolio": {
+    "widget-title": "investmentportfolio",
+    "label": "Esta es una etiqueta."
+  },
+  "com.ncr.dbk.web.platform": {
+    "error": {
+      "title": "Algo salió mal",
+      "message": "{{message}}"
+    },
+    "messages": {
+      "generic": {
+        "loading": "",
+        "error": "Estamos experimentando algunas dificultades técnicas. Por favor, inténtelo de nuevo más tarde."
+      },
+      "widget": {
+        "loading": "Cargando widget...",
+        "error": "Error al cargar el widget. Por favor, inténtelo de nuevo."
+      }
+    }
+  }
+}

@@ -1,0 +1,6 @@
+[
+  {
+    "context": "/nxg-olb-bff/live",
+    "target": "http://localhost:3001"
+  }
+]

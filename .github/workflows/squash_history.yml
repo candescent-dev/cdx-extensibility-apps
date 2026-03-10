@@ -1,0 +1,31 @@
+name: Squash History
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  squash:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+          persist-credentials: true
+
+      - name: Configure bot identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+      - name: Squash all history into one commit
+        run: |
+          git checkout --orphan fresh-main
+          git add -A
+          git commit -m "chore: initial sync"
+          git branch -D main
+          git branch -m main
+      - name: Force push
+        run: git push origin main --force

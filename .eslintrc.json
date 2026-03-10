@@ -1,0 +1,97 @@
+{
+  "root": true,
+  "ignorePatterns": [
+    "**/*"
+  ],
+  "plugins": [
+    "@nx",
+    "sonarjs"
+  ],
+  "extends": [
+    "plugin:sonarjs/recommended-legacy"
+  ],
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "projectService": true
+  },
+  "rules": {
+    "sonarjs/no-empty-test-file": "off",
+    "sonarjs/no-hardcoded-passwords": "off",
+    "sonarjs/todo-tag": "off",
+    "sonarjs/slow-regex": "off"
+  },
+  "overrides": [
+    {
+      "files": "*.json",
+      "parser": "jsonc-eslint-parser",
+      "rules": {}
+    },
+    {
+      "files": [
+        "*.ts",
+        "*.tsx",
+        "*.js",
+        "*.jsx"
+      ],
+      "rules": {
+        "@nx/enforce-module-boundaries": [
+          "error",
+          {
+            "enforceBuildableLibDependency": true,
+            "allow": [],
+            "depConstraints": [
+              {
+                "sourceTag": "*",
+                "onlyDependOnLibsWithTags": [
+                  "*"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": [
+        "*.ts",
+        "*.tsx"
+      ],
+      "extends": [
+        "plugin:@nx/typescript"
+      ],
+      "rules": {
+        "@typescript-eslint/no-explicit-any": "off",
+        "no-console": 2,
+        "react/jsx-no-useless-fragment": "off",
+        "react-hooks/exhaustive-deps": "off",
+        "@typescript-eslint/no-extra-semi": "error",
+        "no-extra-semi": "off"
+      }
+    },
+    {
+      "files": [
+        "*.js",
+        "*.jsx"
+      ],
+      "extends": [
+        "plugin:@nx/javascript"
+      ],
+      "rules": {
+        "@typescript-eslint/no-extra-semi": "error",
+        "no-extra-semi": "off"
+      }
+    },
+    {
+      "files": [
+        "*.spec.ts",
+        "*.spec.tsx",
+        "*.spec.js",
+        "*.spec.jsx"
+      ],
+      "env": {
+        "jest": true
+      },
+      "rules": {}
+    }
+  ]
+}

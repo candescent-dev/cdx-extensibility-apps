@@ -1,0 +1,22 @@
+{
+  "com.ncr.dbk.olb.widgets.investmentportfolio": {
+    "widget-title": "investmentportfolio",
+    "label": "這是一個標籤。"
+  },
+  "com.ncr.dbk.web.platform": {
+    "error": {
+      "title": "出了點問題",
+      "message": "{{message}}"
+    },
+    "messages": {
+      "generic": {
+        "loading": "",
+        "error": "我們遇到了一些技術困難。請稍後再試。"
+      },
+      "widget": {
+        "loading": "載入小元件...",
+        "error": "載入小部件時出錯。請再試一次。"
+      }
+    }
+  }
+}

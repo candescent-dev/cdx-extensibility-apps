@@ -1,0 +1,138 @@
+{
+    "totalValue": 175430.5,
+    "totalValueChange": 3240.75,
+    "totalValueChangePercent": 2.65,
+    "cashBalance": 15230.0,
+    "investedValue": 110200.5,
+    "dayChange": 1250.3,
+    "dayChangePercent": 1.01,
+    "holdings": [
+      {
+        "symbol": "AAPL",
+        "name": "Apple Inc.",
+        "shares": 45,
+        "currentPrice": 175.23,
+        "value": 7885.35,
+        "change": 125.5,
+        "changePercent": 1.62,
+        "allocation": 6.29
+      },
+      {
+        "symbol": "MSFT",
+        "name": "Microsoft Corporation",
+        "shares": 30,
+        "currentPrice": 378.85,
+        "value": 11365.5,
+        "change": 89.25,
+        "changePercent": 0.79,
+        "allocation": 9.07
+      },
+      {
+        "symbol": "GOOGL",
+        "name": "Alphabet Inc.",
+        "shares": 25,
+        "currentPrice": 142.56,
+        "value": 3564.0,
+        "change": -45.2,
+        "changePercent": -1.25,
+        "allocation": 2.84
+      },
+      {
+        "symbol": "AMZN",
+        "name": "Amazon.com Inc.",
+        "shares": 40,
+        "currentPrice": 145.32,
+        "value": 5812.8,
+        "change": 78.4,
+        "changePercent": 1.37,
+        "allocation": 4.64
+      },
+      {
+        "symbol": "TSLA",
+        "name": "Tesla, Inc.",
+        "shares": 50,
+        "currentPrice": 248.5,
+        "value": 12425.0,
+        "change": 325.0,
+        "changePercent": 2.68,
+        "allocation": 9.91
+      },
+      {
+        "symbol": "SPY",
+        "name": "SPDR S&P 500 ETF",
+        "shares": 100,
+        "currentPrice": 445.67,
+        "value": 44567.0,
+        "change": 567.0,
+        "changePercent": 1.29,
+        "allocation": 35.52
+      },
+      {
+        "symbol": "VTI",
+        "name": "Vanguard Total Stock Market ETF",
+        "shares": 80,
+        "currentPrice": 234.12,
+        "value": 18729.6,
+        "change": 234.4,
+        "changePercent": 1.27,
+        "allocation": 14.93
+      },
+      {
+        "symbol": "BND",
+        "name": "Vanguard Total Bond Market ETF",
+        "shares": 120,
+        "currentPrice": 78.45,
+        "value": 9414.0,
+        "change": 12.0,
+        "changePercent": 0.13,
+        "allocation": 7.51
+      }
+    ],
+    "recentActivity": [
+      {
+        "id": "1",
+        "type": "BUY",
+        "symbol": "AAPL",
+        "shares": 5,
+        "price": 174.5,
+        "date": "2024-01-15",
+        "time": "10:30 AM"
+      },
+      {
+        "id": "2",
+        "type": "SELL",
+        "symbol": "GOOGL",
+        "shares": 10,
+        "price": 143.2,
+        "date": "2024-01-14",
+        "time": "2:15 PM"
+      },
+      {
+        "id": "3",
+        "type": "DIVIDEND",
+        "symbol": "MSFT",
+        "amount": 45.0,
+        "date": "2024-01-10",
+        "time": "9:00 AM"
+      },
+      {
+        "id": "4",
+        "type": "BUY",
+        "symbol": "SPY",
+        "shares": 20,
+        "price": 444.0,
+        "date": "2024-01-08",
+        "time": "11:45 AM"
+      }
+    ],
+    "performance": {
+      "oneDay": 1.01,
+      "oneWeek": 2.35,
+      "oneMonth": 5.42,
+      "threeMonths": 8.67,
+      "sixMonths": 12.34,
+      "oneYear": 18.56,
+      "allTime": 24.89
+    }
+  }
+  

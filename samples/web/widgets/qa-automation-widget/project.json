@@ -1,0 +1,166 @@
+{
+  "name": "qa-automation-widget",
+  "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "samples/web/widgets/qa-automation-widget/src",
+  "projectType": "application",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@nx/webpack:webpack",
+      "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "qal",
+      "options": {
+        "compiler": "babel",
+        "outputPath": "dist/apps/qa-automation-widget",
+        "index": "samples/web/widgets/qa-automation-widget/src/index.html",
+        "baseHref": "/",
+        "main": "samples/web/widgets/qa-automation-widget/src/main.ts",
+        "tsConfig": "samples/web/widgets/qa-automation-widget/tsconfig.app.json",
+        "assets": [
+          "samples/web/widgets/qa-automation-widget/src/favicon.ico",
+          "samples/web/widgets/qa-automation-widget/src/assets",
+          "samples/web/widgets/qa-automation-widget/src/locales"
+        ],
+        "styles": [],
+        "scripts": [],
+        "webpackConfig": "samples/web/widgets/qa-automation-widget/webpack.config.ts"
+      },
+      "configurations": {
+        "development": {
+          "extractLicenses": false,
+          "optimization": false,
+          "sourceMap": true,
+          "vendorChunk": true
+        },
+        "production": {
+          "fileReplacements": [
+            {
+              "replace": "samples/web/widgets/qa-automation-widget/src/environments/environment.ts",
+              "with": "samples/web/widgets/qa-automation-widget/src/environments/environment.prod.ts"
+            }
+          ],
+          "optimization": true,
+          "outputHashing": "all",
+          "sourceMap": false,
+          "namedChunks": false,
+          "extractLicenses": true,
+          "vendorChunk": false
+        },
+        "stage": {
+          "fileReplacements": [
+            {
+              "replace": "samples/web/widgets/qa-automation-widget/src/environments/environment.ts",
+              "with": "samples/web/widgets/qa-automation-widget/src/environments/environment.prod.ts"
+            }
+          ],
+          "optimization": true,
+          "outputHashing": "all",
+          "sourceMap": false,
+          "namedChunks": false,
+          "extractLicenses": true,
+          "vendorChunk": false
+        },
+        "demo": {
+          "fileReplacements": [
+            {
+              "replace": "samples/web/widgets/qa-automation-widget/src/environments/environment.ts",
+              "with": "samples/web/widgets/qa-automation-widget/src/environments/environment.prod.ts"
+            }
+          ],
+          "optimization": true,
+          "outputHashing": "all",
+          "sourceMap": false,
+          "namedChunks": false,
+          "extractLicenses": false,
+          "vendorChunk": false
+        },
+        "preprod": {
+          "fileReplacements": [
+            {
+              "replace": "samples/web/widgets/qa-automation-widget/src/environments/environment.ts",
+              "with": "samples/web/widgets/qa-automation-widget/src/environments/environment.qal.ts"
+            }
+          ],
+          "optimization": true,
+          "outputHashing": "all",
+          "sourceMap": true,
+          "namedChunks": true,
+          "extractLicenses": false,
+          "vendorChunk": true
+        },
+        "qal": {
+          "fileReplacements": [
+            {
+              "replace": "samples/web/widgets/qa-automation-widget/src/environments/environment.ts",
+              "with": "samples/web/widgets/qa-automation-widget/src/environments/environment.qal.ts"
+            }
+          ],
+          "optimization": true,
+          "outputHashing": "all",
+          "sourceMap": true,
+          "namedChunks": true,
+          "extractLicenses": false,
+          "vendorChunk": true
+        }
+      }
+    },
+    "serve": {
+      "executor": "@nx/react:module-federation-dev-server",
+      "defaultConfiguration": "development",
+      "options": {
+        "buildTarget": "qa-automation-widget:build",
+        "hmr": true,
+        "port": 4102
+      },
+      "configurations": {
+        "development": {
+          "buildTarget": "qa-automation-widget:build:development"
+        },
+        "https-development": {
+          "buildTarget": "banking-platform:build:development",
+          "ssl": true,
+          "sslKey": "localhost-key.pem",
+          "sslCert": "localhost.pem"
+        },
+        "production": {
+          "buildTarget": "qa-automation-widget:build:production",
+          "hmr": false
+        }
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "options": {
+        "jestConfig": "{projectRoot}/jest.config.ts",
+        "passWithNoTests": true
+      },
+      "configurations": {
+        "ci": {
+          "ci": true,
+          "codeCoverage": true
+        }
+      }
+    },
+    "serve-static": {
+      "executor": "@nx/web:file-server",
+      "defaultConfiguration": "production",
+      "options": {
+        "buildTarget": "qa-automation-widget:build",
+        "watch": false,
+        "port": 4102
+      },
+      "configurations": {
+        "development": {
+          "buildTarget": "qa-automation-widget:build:development"
+        },
+        "production": {
+          "buildTarget": "qa-automation-widget:build:production"
+        }
+      }
+    }
+  }
+}

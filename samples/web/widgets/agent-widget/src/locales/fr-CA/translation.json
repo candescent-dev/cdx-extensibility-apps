@@ -1,0 +1,22 @@
+{
+  "com.ncr.dbk.olb.widgets.agent": {
+    "widget-title": "Agent",
+    "label": "This is a label."
+  },
+  "com.ncr.dbk.web.platform": {
+    "error": {
+      "title": "Quelque chose s’est mal passé",
+      "message": "{{message}}"
+    },
+    "messages": {
+      "generic": {
+        "loading": "",
+        "error": "Nous rencontrons des difficultés techniques. Veuillez réessayer plus tard."
+      },
+      "widget": {
+        "loading": "Loading widget...",
+        "error": "Erreur de chargement du widget. Veuillez réessayer."
+      }
+    }
+  }
+}

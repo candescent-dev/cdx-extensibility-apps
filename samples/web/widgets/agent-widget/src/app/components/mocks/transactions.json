@@ -1,0 +1,52 @@
+[
+  {
+    "date": "2025-11-03",
+    "description": "Grocery Store",
+    "amount": -156.42,
+    "category": "groceries",
+    "account": "Premium Checking"
+  },
+  {
+    "date": "2025-11-02",
+    "description": "Salary Deposit",
+    "amount": 5200.00,
+    "category": "income",
+    "account": "Premium Checking"
+  },
+  {
+    "date": "2025-11-01",
+    "description": "Electric Bill",
+    "amount": -145.30,
+    "category": "utilities",
+    "account": "Premium Checking"
+  },
+  {
+    "date": "2025-10-31",
+    "description": "Restaurant",
+    "amount": -87.25,
+    "category": "dining",
+    "account": "Premium Checking"
+  },
+  {
+    "date": "2025-10-30",
+    "description": "Gas Station",
+    "amount": -62.40,
+    "category": "transportation",
+    "account": "Premium Checking"
+  },
+  {
+    "date": "2025-10-28",
+    "description": "Transfer to Savings",
+    "amount": -1000.00,
+    "category": "transfer",
+    "account": "Premium Checking"
+  },
+  {
+    "date": "2025-10-28",
+    "description": "Transfer from Checking",
+    "amount": 1000.00,
+    "category": "transfer",
+    "account": "Savings Account"
+  }
+]
+

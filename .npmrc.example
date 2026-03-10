@@ -1,0 +1,22 @@
+; Example npm config for this repo (NO secrets).
+; Copy these entries into your local ~/.npmrc or repo .npmrc and set env vars.
+
+strict-ssl=false
+
+@nxg-web:registry=https://candescent.jfrog.io/artifactory/api/npm/digitalbanking-npm-group/
+@dbk-olb-platform:registry=https://candescent.jfrog.io/artifactory/api/npm/digitalbanking-npm-group/
+@cds:registry=https://candescent.jfrog.io/artifactory/api/npm/digitalbanking-npm-group/
+@cdx-extensibility:registry=https://candescent.jfrog.io/artifactory/api/npm/digitalbanking-npm-group/
+@cdx-extensibility-examples:registry=https://candescent.jfrog.io/artifactory/api/npm/digitalbanking-npm-group/
+
+; Auth is provided via environment variables (recommended).
+; Required:
+; - JFROG_USERNAME
+; - JFROG_AUTH_TOKEN
+//candescent.jfrog.io/artifactory/api/npm/digitalbanking-npm-group/:_authToken=${JFROG_AUTH_TOKEN}
+//candescent.jfrog.io/artifactory/api/npm/digitalbanking-npm-group/:username=${JFROG_USERNAME}
+//candescent.jfrog.io/artifactory/api/npm/digitalbanking-npm-group/:always-auth=true
+
+registry=https://registry.npmjs.org/
+email=${JFROG_USERNAME}
+
