@@ -68,15 +68,17 @@ npm install
 ```bash
 nx serve agent-widget
 nx serve qa-automation-widget
+nx serve investmentportfolio-widget
 ```
 
-Default ports: `agent-widget` → `http://localhost:4102`, `qa-automation-widget` → `http://localhost:4102`. See [Changing the local port](#changing-the-local-port) if you need to run both simultaneously or use a different port.
+Default ports: `agent-widget` → `http://localhost:4102`, `qa-automation-widget` → `http://localhost:4102`, `investmentportfolio-widget` → `http://localhost:4302`. See [Changing the local port](#changing-the-local-port) if you need to run both simultaneously or use a different port.
 
 ### 6. Build a widget
 
 ```bash
 nx build agent-widget --configuration=production
 nx build qa-automation-widget --configuration=production
+nx build investmentportfolio-widget --configuration=production
 ```
 
 Available configurations: `production`, `stage`, `qal`, `preprod`, `demo`, `development`.
@@ -198,6 +200,16 @@ const config: ModuleFederationConfig = {
 };
 ```
 
+```ts
+// samples/web/widgets/investmentportfolio-widget/module-federation.config.ts
+const config: ModuleFederationConfig = {
+  name: 'investmentportfolio-widget',
+  exposes: {
+    './InvestmentportfolioWidget': './src/app/InvestmentportfolioWidget',
+  },
+};
+```
+
 | Field | Purpose |
 |-------|---------|
 | `name` | **Remote name** — uniquely identifies your widget to the OLB host. Must match exactly what is registered in the NextGen Admin Portal. |
@@ -214,6 +226,7 @@ Every `nx build` generates a `remoteEntry.js` in the output folder (build output
 ```
 dist/apps/agent-widget/remoteEntry.js
 dist/apps/qa-automation-widget/remoteEntry.js
+dist/apps/investmentportfolio-widget/remoteEntry.js
 ```
 
 This is the **first file OLB fetches at runtime**. It contains the widget's module manifest and shared dependency negotiation logic. OLB loads this file, resolves shared packages (React, MUI, etc.), then dynamically imports the exposed component.
@@ -259,10 +272,12 @@ Use only these packages and versions in your widget. Do not add runtime dependen
 
 | Widget | Target | Port |
 |--------|--------|------|
-| `agent-widget` | `nx serve` | 4102 |
+| `agent-widget` | `nx serve agent-widget` | 4101 |
 | `agent-widget` | `nx run agent-widget:serve-static` | 4101 |
-| `qa-automation-widget` | `nx serve` | 4102 |
+| `qa-automation-widget` | `nx serve qa-automation-widget` | 4102 |
 | `qa-automation-widget` | `nx run qa-automation-widget:serve-static` | 4102 |
+| `investmentportfolio-widget` | `nx serve investmentportfolio-widget` | 4302 |
+| `investmentportfolio-widget` | `nx run investmentportfolio-widget:serve-static` | 4302 |
 
 ### Option A — Override at the command line (no file change needed)
 
@@ -271,6 +286,7 @@ The quickest way to change the port for a single run:
 ```bash
 nx serve agent-widget --port=4103
 nx serve qa-automation-widget --port=4104
+nx serve investmentportfolio-widget --port=4302
 ```
 
 ### Option B — Update `project.json` permanently
