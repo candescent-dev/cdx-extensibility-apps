@@ -2,6 +2,7 @@ import '@testing-library/jest-dom';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import QaAutomationWidget from './QaAutomationWidget';
 import { UserContext } from '@cdx-extensions/di-sdk-types';
+import { environment } from '../environments/environment';
 
 // All mocks are inline below (no __mocks__ folder). See pre-cleanup repo for reference.
 
@@ -20,16 +21,11 @@ jest.mock('@cdx-extensions/di-sdk', () => ({
   },
 }));
 
-// Mock environment
-jest.mock('../environments/environment', () => ({
-  environment: {
-    production: false,
-    useDefaultTranslations: true,
-    environment: 'dev',
-    apiUrl: 'https://localhost:3001',
-    features: {},
-  },
-}));
+// Mock environment (use real environment so apiUrl comes from environment.ts)
+jest.mock('../environments/environment', () => {
+  const actual = jest.requireActual<typeof import('../environments/environment')>('../environments/environment');
+  return { environment: { ...actual.environment } };
+});
 
 describe('<QaAutomationWidget />', () => {
   const mockUserContext = {
@@ -165,7 +161,7 @@ describe('<QaAutomationWidget />', () => {
     fireEvent.click(testButton);
 
     await waitFor(() => {
-      expect(mockHttpClient.get).toHaveBeenCalledWith('/api/demo/account-summary');
+      expect(mockHttpClient.get).toHaveBeenCalledWith(`${environment.apiUrl}/api/demo/mock-data`);
       expect(screen.getByText('API Response')).toBeInTheDocument();
     });
   });
@@ -190,12 +186,13 @@ describe('<QaAutomationWidget />', () => {
     fireEvent.click(testButton);
 
     await waitFor(() => {
-      expect(mockHttpClient.get).toHaveBeenCalledWith('/api/demo/account-summary/not-found');
+      expect(mockHttpClient.get).toHaveBeenCalledWith(`${environment.apiUrl}/api/demo/mock-data/not-found`);
       expect(screen.getByText('API Response')).toBeInTheDocument();
     });
   });
 
   it('should handle API errors correctly', async () => {
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     const mockError = {
       response: {
         status: 500,
@@ -218,6 +215,9 @@ describe('<QaAutomationWidget />', () => {
     await waitFor(() => {
       expect(screen.getByText('API Response')).toBeInTheDocument();
     });
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith('[QAAutomationWidget] API error:', expect.any(Object));
+    consoleErrorSpy.mockRestore();
   });
 
   it('should display loading state during API test', async () => {

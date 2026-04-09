@@ -3,10 +3,31 @@
   "version": "0.0.1",
   "license": "MIT",
   "private": true,
+  "workspaces": {
+    "packages": ["playground/mobile-sandbox", "samples/mobile/*", "samples/mobile/widgets/*", "samples/mobile/feature/*"],
+    "// nohoist": "Packages listed below are not hoisted to root. They stay in each workspace's node_modules so Metro (mobile) can resolve them from playground/mobile-sandbox. Web/Nx continue to use root node_modules.",
+    "nohoist": [
+      "**/axios",
+      "**/axios/**",
+      "**/axios-mock-adapter",
+      "**/axios-mock-adapter/**",
+      "**/react-native",
+      "**/react-native/**",
+      "**/expo",
+      "**/expo/**",
+      "**/@expo/**",
+      "**/@react-native/**",
+      "**/metro",
+      "**/metro/**",
+      "**/metro-*",
+      "**/metro-*/**"
+    ]
+  },
   "scripts": {
     "postinstall": "node tools/scripts/patch-mui-esm.js"
   },
   "dependencies": {
+
     "@emotion/react": "11.11.1",
     "@emotion/styled": "11.11.0",
     "@mui/icons-material": "7.3.4",
@@ -14,11 +35,13 @@
     "@mui/system": "7.3.3",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "@cdx-extensions/di-sdk": "0.0.3",
-    "@cdx-extensions/di-sdk-web": "2.0.46",
-    "@cdx-extensions/di-sdk-types": "0.0.4",
-    "@cdx-extensions/di-sdk-mobile": "2.0.2",
-    "@cdx-extensions/widget-template": "1.0.3"
+    "@cdx-extensions/di-sdk": "1.1.2",
+    "@cdx-extensions/di-sdk-web": "2.1.2",
+    "@cdx-extensions/di-sdk-types": "1.1.2",
+    "@cdx-extensions/di-sdk-mobile": "2.1.2",
+    "@cdx-extensions/widget-template-web": "1.1.2",
+    "@cdx-extensions/widget-template-mobile": "1.1.3",
+    "axios": "1.14.0"
   },
   "devDependencies": {
     "@babel/core": "^7.14.5",
@@ -74,6 +97,20 @@
     "ts-node": "10.9.2",
     "typescript": "5.5.3"
   },
+  "overrides": {
+    "node-forge": ">=1.4.0",
+    "picomatch": ">=2.3.2 <3.0.0 || >=3.0.2 <4.0.0 || >=4.0.4",
+    "brace-expansion": ">=1.1.13 <2.0.0 || >=2.0.3 <3.0.0",
+    "@expo/cli": {
+      "tar": "7.5.13"
+    },
+    "cacache": {
+      "tar": "7.5.13"
+    },
+    "follow-redirects": "1.15.6",
+    "ejs": "3.1.10",
+    "webpack": "5.88.0"
+  },
   "resolutions": {
     "follow-redirects": "1.15.6",
     "ejs": "3.1.10",
@@ -83,4 +120,3 @@
     "targets": {}
   }
 }
-

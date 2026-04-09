@@ -253,13 +253,17 @@ Could you be more specific about what you'd like to know? For example:
 /**
  * HTTP Client instance implementing HttpClient interface
  * Use this for IDE navigation - cmd+click on methods will navigate to HttpClient interface
+ *
+ * Lazy-initialized to avoid calling PlatformSDK.getInstance() at module load time
+ * (before PlatformSDK.init() runs in bootstrap).
  */
-
-const baseHttpClient = PlatformSDK.getInstance().getHttpClient();
+function getBaseHttpClient() {
+  return PlatformSDK.getInstance().getHttpClient();
+}
 
 export const httpClientWrapper: HttpClient = {
   get: async <T = any>(url: string, config?: HttpRequestConfig): Promise<HttpResponse<T>> => {
-    const client = baseHttpClient;
+    const client = getBaseHttpClient();
     const response = await client.get<T>(url, config as any);
     return {
       data: response.data,
@@ -273,7 +277,7 @@ export const httpClientWrapper: HttpClient = {
     data?: any,
     config?: HttpRequestConfig,
   ): Promise<HttpResponse<T>> => {
-    const client = baseHttpClient;
+    const client = getBaseHttpClient();
     const response = await client.post<T>(url, data, config as any);
     return {
       data: response.data,
@@ -287,7 +291,7 @@ export const httpClientWrapper: HttpClient = {
     data?: any,
     config?: HttpRequestConfig,
   ): Promise<HttpResponse<T>> => {
-    const client = baseHttpClient;
+    const client = getBaseHttpClient();
     const response = await client.put<T>(url, data, config as any);
     return {
       data: response.data,
@@ -301,7 +305,7 @@ export const httpClientWrapper: HttpClient = {
     data?: any,
     config?: HttpRequestConfig,
   ): Promise<HttpResponse<T>> => {
-    const client = baseHttpClient;
+    const client = getBaseHttpClient();
     const response = await client.patch<T>(url, data, config as any);
     return {
       data: response.data,
@@ -311,7 +315,7 @@ export const httpClientWrapper: HttpClient = {
     };
   },
   delete: async <T = any>(url: string, config?: HttpRequestConfig): Promise<HttpResponse<T>> => {
-    const client = baseHttpClient;
+    const client = getBaseHttpClient();
     const response = await client.delete<T>(url, config as any);
     return {
       data: response.data,

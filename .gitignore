@@ -52,7 +52,8 @@ migrations.json
 .env.*.local
 
 # Expo / React Native (mobile sandbox)
-apps/mobile/mobile-sandbox/.expo
-apps/mobile/mobile-sandbox/.expo-shared
-apps/mobile/mobile-sandbox/android
-apps/mobile/mobile-sandbox/ios
+.expo
+playground/mobile-sandbox/.expo
+playground/mobile-sandbox/.expo-shared
+playground/mobile-sandbox/android
+playground/mobile-sandbox/ios

@@ -200,11 +200,11 @@ export const QAAutomationWidget: React.FC<QaAutomationWidgetProps> = (props) => 
       const effectiveScenario = standalone ? scenarioType : 'Positive';
       const endpoint =
         effectiveScenario === 'Negative'
-          ? '/api/demo/account-summary/not-found' // Returns 404 error
-          : '/api/demo/account-summary'; // Returns 200 with account summary data
+          ? '/api/demo/mock-data/not-found' // Returns 404 error
+          : '/api/demo/mock-data'; // Returns 200 with data
 
-      setTestRequestUrl(endpoint);
-      const response = await client.get(endpoint);
+      setTestRequestUrl(env.apiUrl + endpoint);
+      const response = await client.get(env.apiUrl + endpoint);
 
       // For successful responses (Positive scenario)
       setTestStatus(response.status);

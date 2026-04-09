@@ -1,0 +1,24 @@
+{
+  "expo": {
+    "entryPoint": "./index.js",
+    "name": "mobile-sandbox",
+    "slug": "mobile-sandbox",
+    "version": "0.0.1",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.anonymous.mobilesandbox"
+    },
+    "android": {
+      "package": "com.anonymous.mobilesandbox"
+    },
+    "plugins": [],
+    "web": {
+      "bundler": "metro"
+    }
+  }
+}

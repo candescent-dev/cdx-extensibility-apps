@@ -1,14 +1,185 @@
 import React, { useState } from 'react';
+import { ThemeProvider, CssBaseline, useTheme } from '@mui/material';
+import { createTheme, type Theme } from '@mui/material/styles';
 import { PlatformSDK } from '@cdx-extensions/di-sdk';
 import { environment } from '../environments/environment';
 import investment from '../__mocks__/investmentMock.json';
+import type { InvestmentportfolioWidgetProps } from '../types';
+import { defaultBranding, type BrandingConfig } from './components/types/branding';
 
 /**
  * Federated module entry point component. This will be the component that is used
  * when displayed as an MFE on a page.
- * @returns {typeof InvestmentportfolioWidget} Main MFE entry component
  */
 
+const DEFAULT_BRANDING_ID = 'branding-1';
+
+/** Fixed allocation colors for the donut chart (same as pre-theme sample). */
+const DONUT_CHART_COLORS = [
+  '#1A6CDA',
+  '#10B981',
+  '#F59E0B',
+  '#EF4444',
+  '#8B5CF6',
+  '#EC4899',
+  '#06B6D4',
+  '#84CC16',
+];
+
+/** Build MUI theme from SDK theme; fallback to minimal theme. */
+function resolveTheme(sdkTheme: unknown): Theme {
+  if (sdkTheme && typeof sdkTheme === 'object' && Object.keys(sdkTheme as object).length > 0) {
+    return createTheme(sdkTheme as object);
+  }
+  return createTheme({});
+}
+
+/** Map MUI theme to BrandingConfig for inline UI. */
+function themeToBrandingConfig(theme: Theme): BrandingConfig {
+  const p = theme.palette;
+  const t = theme.typography;
+  return {
+    colors: {
+      primary: p.primary?.main ?? defaultBranding.colors.primary,
+      secondary: p.secondary?.main ?? defaultBranding.colors.secondary,
+      background: p.background?.default ?? defaultBranding.colors.background,
+      surface: p.background?.paper ?? defaultBranding.colors.surface,
+      text: p.text?.primary ?? defaultBranding.colors.text,
+      textSecondary: p.text?.secondary ?? defaultBranding.colors.textSecondary,
+      error: p.error?.main ?? defaultBranding.colors.error,
+      warning: p.warning?.main ?? defaultBranding.colors.warning,
+      success: p.success?.main ?? defaultBranding.colors.success,
+    },
+    fonts: {
+      primary: t.fontFamily ?? defaultBranding.fonts.primary,
+      secondary: t.fontFamily ?? defaultBranding.fonts.secondary,
+    },
+    spacing: defaultBranding.spacing,
+  };
+}
+
+/** Font metrics from the active MUI theme (host when embedded, SDK when standalone). */
+function typographyVariant(
+  theme: Theme,
+  key: 'caption' | 'body2' | 'subtitle2' | 'h6',
+): React.CSSProperties {
+  const v = theme.typography[key];
+  if (v && typeof v === 'object' && !Array.isArray(v)) {
+    return v as React.CSSProperties;
+  }
+  return {};
+}
+
+function getPortfolioStyles(
+  branding: BrandingConfig,
+  muiTheme: Theme,
+): { [key: string]: React.CSSProperties } {
+  const divider = muiTheme.palette.divider;
+  const t = muiTheme.typography;
+  const borderRadius = Number.parseFloat(String(muiTheme.shape.borderRadius));
+  return {
+    container: {
+      backgroundColor: branding.colors.background,
+      fontFamily: branding.fonts.primary,
+      padding: `${branding.spacing.medium}px`,
+      borderRadius: '8px',
+      border: `1px solid ${divider}`,
+      boxShadow: muiTheme.shadows[1],
+    },
+    subtitle: {
+      ...typographyVariant(muiTheme, 'caption'),
+      color: branding.colors.textSecondary,
+      margin: 0,
+    },
+    holdingsCard: {
+      backgroundColor: 'transparent',
+      borderRadius: '0',
+      padding: '0',
+      overflowX: 'auto',
+    },
+    viewModeButton: {
+      ...typographyVariant(muiTheme, 'body2'),
+      fontWeight: t.fontWeightMedium,
+      padding: '8px 16px',
+      borderRadius: `${Number.isNaN(borderRadius) ? 4 : borderRadius}px`,
+      border: 'none',
+      cursor: 'pointer',
+      transition: 'all 0.2s',
+    },
+    viewModeButtonActive: {
+      fontWeight: t.fontWeightBold,
+    },
+    chartsContainer: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+      gap: `${branding.spacing.medium}px`,
+    },
+    chartSection: {
+      backgroundColor: branding.colors.surface,
+      borderRadius: '6px',
+      padding: `${branding.spacing.medium}px`,
+      border: `1px solid ${divider}`,
+    },
+    chartTitle: {
+      ...typographyVariant(muiTheme, 'subtitle2'),
+      color: branding.colors.text,
+      margin: 0,
+      marginBottom: muiTheme.spacing(1.5),
+    },
+    donutChartContainer: {
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      marginBottom: `${branding.spacing.medium}px`,
+    },
+    donutChart: {
+      margin: '0 auto',
+      width: '200px',
+      height: '200px',
+    },
+    donutCenterText: {
+      ...typographyVariant(muiTheme, 'body2'),
+      fontWeight: t.fontWeightMedium,
+      color: branding.colors.textSecondary,
+      fill: branding.colors.textSecondary,
+    },
+    donutCenterValue: {
+      ...typographyVariant(muiTheme, 'h6'),
+      color: branding.colors.text,
+      fill: branding.colors.text,
+    },
+    legendContainer: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(2, 1fr)',
+      gap: '12px',
+      width: '100%',
+    },
+    legendItem: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '8px',
+    },
+    legendColor: {
+      width: '12px',
+      height: '12px',
+      borderRadius: '2px',
+      flexShrink: 0,
+    },
+    legendText: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '2px',
+    },
+    legendSymbol: {
+      ...typographyVariant(muiTheme, 'subtitle2'),
+      color: branding.colors.text,
+    },
+    legendAllocation: {
+      ...typographyVariant(muiTheme, 'caption'),
+      color: branding.colors.textSecondary,
+    },
+  };
+}
 
 interface PortfolioData {
   totalValue: number;
@@ -23,7 +194,6 @@ interface PortfolioData {
   performance: PerformanceMetrics;
 }
 
-// Mock Investment Portfolio Data
 const MOCK_PORTFOLIO_DATA = investment as PortfolioData;
 
 interface Holding {
@@ -58,42 +228,50 @@ interface PerformanceMetrics {
   allTime: number;
 }
 
-const InvestmentportfolioWidget: React.FC = () => {
+interface PortfolioBodyProps extends InvestmentportfolioWidgetProps {
+  muiTheme: Theme;
+  userContextData: { fullName?: string } | undefined;
+}
+
+function PortfolioBody({ muiTheme, userContextData }: PortfolioBodyProps) {
   const [portfolioData, setPortfolioData] = useState<PortfolioData>(MOCK_PORTFOLIO_DATA);
   const [showHoldings] = useState(true);
   const [viewMode] = useState<'chart' | 'list'>('chart');
 
-
   const sdk = PlatformSDK.getInstance();
-  const { data: userContextData } = sdk.useUserContext();
+  const branding = themeToBrandingConfig(muiTheme);
+  const styles = getPortfolioStyles(branding, muiTheme);
+  const chartColors = DONUT_CHART_COLORS;
+  const paperFill = muiTheme.palette.background.paper;
+  const primaryContrast = muiTheme.palette.primary.contrastText;
 
   const baseUrl = environment.apiUrl || 'https://investmentmock.tiiny.site/investmentMock.json';
 
   /*
-  * This function is used to trigger the refresh of the portfolio data
-  * It is used to refresh the portfolio data when the user clicks the refresh button
-  * For your development please remove this button and add some timer to refresh the portfolio data
-  * All external api call should be use this getHttpClient() method to make the api call 
-  * @function triggerEffect
-  * This mockdata is used for only local usage please use the getHttpClient() method to make the api call
-  * @returns {void}
-  * To run this example in your local machine make this changes in the node_modules/@cdx-extensions/di-sdk-web/dist/httpClient.js 
-  * file const isMock = false;
-  * Remove this line request.headers['Authorization'] = `Bearer ${access_token}`;
-  */
+   * This function is used to trigger the refresh of the portfolio data
+   * It is used to refresh the portfolio data when the user clicks the refresh button
+   * For your development please remove this button and add some timer to refresh the portfolio data
+   * All external api call should be use this getHttpClient() method to make the api call
+   * @function triggerEffect
+   * This mockdata is used for only local usage please use the getHttpClient() method to make the api call
+   * @returns {void}
+   * To run this example in your local machine make this changes in the node_modules/@cdx-extensions/di-sdk-web/dist/httpClient.js
+   * file const isMock = false;
+   * Remove this line request.headers['Authorization'] = `Bearer ${access_token}`;
+   */
   const [triggerEffect, setTriggerEffect] = useState(false);
-    if(triggerEffect){
+  if (triggerEffect) {
     sdk
       .getHttpClient()
       .get(baseUrl)
-      .then((response) => {
+      .then(response => {
         setPortfolioData(response.data);
       })
-      .catch((error) => {
+      .catch(error => {
         alert(error);
         setPortfolioData(MOCK_PORTFOLIO_DATA);
       });
-      setTriggerEffect(false);
+    setTriggerEffect(false);
   }
 
   const formatCurrency = (value: number): string => {
@@ -105,27 +283,13 @@ const InvestmentportfolioWidget: React.FC = () => {
     }).format(value);
   };
 
-  // Color palette for charts
-  const chartColors = [
-    '#1A6CDA',
-    '#10B981',
-    '#F59E0B',
-    '#EF4444',
-    '#8B5CF6',
-    '#EC4899',
-    '#06B6D4',
-    '#84CC16',
-  ];
-
-  // Calculate donut chart data
   const donutChartData = portfolioData.holdings.map((holding, index) => ({
     ...holding,
     color: chartColors[index % chartColors.length],
     angle: (holding.allocation / 100) * 360,
   }));
 
-  // Calculate cumulative angles for donut chart
-  let cumulativeAngle = -90; // Start at top
+  let cumulativeAngle = -90;
   const donutSegments = donutChartData.map(item => {
     const startAngle = cumulativeAngle;
     cumulativeAngle += item.angle;
@@ -136,7 +300,6 @@ const InvestmentportfolioWidget: React.FC = () => {
     };
   });
 
-  // Helper function to convert angle to coordinates
   const getCoordinates = (angle: number, radius: number, center: number) => {
     const radians = (angle * Math.PI) / 180;
     return {
@@ -145,7 +308,6 @@ const InvestmentportfolioWidget: React.FC = () => {
     };
   };
 
-  // Create path for donut segment
   const createDonutPath = (
     startAngle: number,
     endAngle: number,
@@ -169,21 +331,12 @@ const InvestmentportfolioWidget: React.FC = () => {
     ].join(' ');
   };
 
-
   return (
     <div style={styles.container}>
-       
-         
-      {/* Holdings Charts */}
       {showHoldings && (
         <div style={styles.holdingsCard}>
-          {/* View Mode Toggle */}
-          
-
           {viewMode === 'chart' ? (
             <div style={styles.chartsContainer}>
-                 
-              {/* Donut Chart for Allocation */}
               <div style={styles.chartSection}>
                 <h3 style={styles.chartTitle}>Portfolio Allocation</h3>
                 <p style={styles.subtitle}>Portfolio Overview</p>
@@ -193,12 +346,12 @@ const InvestmentportfolioWidget: React.FC = () => {
                 <div style={styles.donutChartContainer}>
                   <svg width="200" height="200" style={styles.donutChart}>
                     <g transform="translate(100, 100)">
-                      {donutSegments.map((segment, index) => (
+                      {donutSegments.map(segment => (
                         <g key={segment.symbol}>
                           <path
                             d={createDonutPath(segment.startAngle, segment.endAngle, 50, 70, 0)}
                             fill={segment.color}
-                            stroke="#ffffff"
+                            stroke={paperFill}
                             strokeWidth="2"
                             style={{ cursor: 'pointer' }}
                             onMouseEnter={e => {
@@ -210,7 +363,7 @@ const InvestmentportfolioWidget: React.FC = () => {
                           />
                         </g>
                       ))}
-                      <circle cx="0" cy="0" r="50" fill="#ffffff" />
+                      <circle cx="0" cy="0" r="50" fill={paperFill} />
                       <text x="0" y="-10" textAnchor="middle" style={styles.donutCenterText}>
                         Total
                       </text>
@@ -220,7 +373,6 @@ const InvestmentportfolioWidget: React.FC = () => {
                     </g>
                   </svg>
                 </div>
-                {/* Legend */}
                 <div style={styles.legendContainer}>
                   {donutSegments.map(segment => (
                     <div key={segment.symbol} style={styles.legendItem}>
@@ -238,141 +390,58 @@ const InvestmentportfolioWidget: React.FC = () => {
                   ))}
                 </div>
               </div>
-
-              
             </div>
           ) : null}
         </div>
       )}
       <div>
-            <button id="refresh-button"
-              style={{
-                ...styles.viewModeButton,
-                ...(viewMode === 'chart' ? styles.viewModeButtonActive : {}),
-                backgroundColor:
-                  viewMode === 'chart' ? '#1A6CDA' : '#f0f0f0',
-                color: viewMode === 'chart' ? '#ffffff' : '#656565',
-                width: '100%',
-                marginBlock: '10px',
-              }}
-              onClick={(app) => setTriggerEffect(true)}
-            >
-              Refresh 
-            </button>
-           
-          </div>
+        <button
+          id="refresh-button"
+          style={{
+            ...styles.viewModeButton,
+            ...(viewMode === 'chart' ? styles.viewModeButtonActive : {}),
+            backgroundColor: viewMode === 'chart' ? branding.colors.primary : branding.colors.surface,
+            color: viewMode === 'chart' ? primaryContrast : branding.colors.textSecondary,
+            width: '100%',
+            marginBlock: '10px',
+          }}
+          onClick={() => setTriggerEffect(true)}
+        >
+          Refresh
+        </button>
+      </div>
     </div>
-    
   );
-};
+}
 
+function InvestmentportfolioWidgetStandalone(props: InvestmentportfolioWidgetProps) {
+  const sdk = PlatformSDK.getInstance();
+  const { data: userContextData } = sdk.useUserContext();
+  const { theme: sdkTheme } = sdk.useBranding(DEFAULT_BRANDING_ID);
+  const muiTheme = resolveTheme(sdkTheme);
 
+  return (
+    <ThemeProvider theme={muiTheme}>
+      <CssBaseline />
+      <PortfolioBody {...props} muiTheme={muiTheme} userContextData={userContextData} />
+    </ThemeProvider>
+  );
+}
 
-const styles: { [key: string]: React.CSSProperties } = {
-  container: {
-    backgroundColor: '#ffffff',
-    fontFamily:
-      'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-    padding: '16px',
-    borderRadius: '8px',
-    border: '1px solid #e0e0e0',
-    boxShadow: '0px 1px 3px rgba(0, 0, 0, 0.1)',
-  },
-  subtitle: {
-    fontSize: '12px',
-    color: '#656565',
-    margin: 0,
-  },
-  holdingsCard: {
-    backgroundColor: 'transparent',
-    borderRadius: '0',
-    padding: '0',
-    overflowX: 'auto',
-  },
-  viewModeButton: {
-    padding: '8px 16px',
-    borderRadius: '6px',
-    border: 'none',
-    fontSize: '14px',
-    fontWeight: 500,
-    cursor: 'pointer',
-    transition: 'all 0.2s',
-  },
-  viewModeButtonActive: {
-    fontWeight: 600,
-  },
-  chartsContainer: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-    gap: '16px',
-  },
-  chartSection: {
-    backgroundColor: '#fafafa',
-    borderRadius: '6px',
-    padding: '16px',
-    border: '1px solid #e0e0e0',
-  },
-  chartTitle: {
-    fontSize: '14px',
-    fontWeight: 600,
-    color: '#212121',
-    margin: 0,
-    marginBottom: '12px',
-  },
-  donutChartContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    marginBottom: '16px',
-  },
-  donutChart: {
-    margin: '0 auto',
-    width: '200px',
-    height: '200px',
-  },
-  donutCenterText: {
-    fontSize: '14px',
-    fontWeight: 500,
-    color: '#656565',
-    fill: '#656565',
-  },
-  donutCenterValue: {
-    fontSize: '20px',
-    fontWeight: 700,
-    color: '#212121',
-    fill: '#212121',
-  },
-  legendContainer: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(2, 1fr)',
-    gap: '12px',
-    width: '100%',
-  },
-  legendItem: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-  },
-  legendColor: {
-    width: '12px',
-    height: '12px',
-    borderRadius: '2px',
-    flexShrink: 0,
-  },
-  legendText: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '2px',
-  },
-  legendSymbol: {
-    fontSize: '14px',
-    fontWeight: 600,
-    color: '#212121',
-  },
-  legendAllocation: {
-    fontSize: '12px',
-    color: '#656565',
-  },
-};
+function InvestmentportfolioWidgetEmbedded(props: InvestmentportfolioWidgetProps) {
+  const sdk = PlatformSDK.getInstance();
+  const { data: userContextData } = sdk.useUserContext();
+  sdk.useBranding(DEFAULT_BRANDING_ID);
+  const muiTheme = useTheme();
+
+  return <PortfolioBody {...props} muiTheme={muiTheme} userContextData={userContextData} />;
+}
+
+const InvestmentportfolioWidget: React.FC<InvestmentportfolioWidgetProps> = props =>
+  props.standalone === true ? (
+    <InvestmentportfolioWidgetStandalone {...props} />
+  ) : (
+    <InvestmentportfolioWidgetEmbedded {...props} />
+  );
 
 export default InvestmentportfolioWidget;

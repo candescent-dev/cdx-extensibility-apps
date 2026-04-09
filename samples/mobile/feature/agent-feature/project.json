@@ -1,0 +1,31 @@
+{
+  "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+  "name": "agent-feature",
+  "projectType": "library",
+  "root": "samples/mobile/feature/agent-feature",
+  "sourceRoot": "samples/mobile/feature/agent-feature/src",
+  "targets": {
+    "build": {
+      "executor": "nx:run-commands",
+      "outputs": ["{workspaceRoot}/dist/packages/agent-feature"],
+      "options": {
+        "command": "npm run build && node ../../../../tools/scripts/stage-nx-package.js --projectRoot . --outDir ../../../../dist/packages/agent-feature --copy dist package.json README.md",
+        "cwd": "samples/mobile/feature/agent-feature"
+      }
+    },
+    "dev": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npm run dev",
+        "cwd": "samples/mobile/feature/agent-feature"
+      }
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npm run typecheck",
+        "cwd": "samples/mobile/feature/agent-feature"
+      }
+    }
+  }
+}

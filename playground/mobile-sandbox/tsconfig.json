@@ -1,0 +1,18 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@cdx-extensions-examples/agent-feature": [
+        "../../samples/mobile/feature/agent-feature/src/index.ts"
+      ],
+      "@cdx-extensions-examples/investment-portfolio": [
+        "../../samples/mobile/widgets/investment-portfolio/src/index.ts"
+      ]
+    },
+    "jsx": "react-jsx",
+    "lib": ["es2020", "dom"],
+    "types": ["react", "react-native"]
+  },
+  "include": ["App.tsx", "**/*.ts", "**/*.tsx"]
+}

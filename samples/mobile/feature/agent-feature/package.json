@@ -1,0 +1,40 @@
+{
+  "name": "@cdx-extensions-examples/agent-feature",
+  "version": "1.0.0",
+  "license": "MIT",
+  "source": "src/index.ts",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "react-native": "dist/index.js",
+  "publishConfig": {
+    "registry": "https://candescent.jfrog.io/artifactory/api/npm/digitalbanking-npm-group/"
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsup src/index.ts --tsconfig tsconfig.json --format cjs,esm --dts --out-dir dist --clean --external react --external react-native --external expo --external @cdx-extensions/di-sdk",
+    "dev": "tsup src/index.ts --tsconfig tsconfig.json --format cjs,esm --dts --out-dir dist --watch --external react --external react-native --external expo --external @cdx-extensions/di-sdk",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "peerDependencies": {
+    "@cdx-extensions/di-sdk": "1.1.2",
+    "expo": ">=50",
+    "react": ">=18",
+    "react-native": ">=0.73"
+  },
+  "peerDependenciesMeta": {
+    "expo": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.33",
+    "react": "18.3.1",
+    "react-native": "0.76.9",
+    "tsup": "^8.0.0",
+    "typescript": "^5.5.0"
+  }
+}
