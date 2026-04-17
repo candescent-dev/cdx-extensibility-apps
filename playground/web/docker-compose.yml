@@ -25,4 +25,5 @@ services:
       - "4220:4220"   # widget1
       - "4223:4223"   # fdic-widget (primary slot for your external widget)
       - "4226:4226"   # my-accounts-widget
+      - "3001:3001"
     restart: unless-stopped
