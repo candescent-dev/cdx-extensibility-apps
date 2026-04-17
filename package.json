@@ -4,7 +4,12 @@
   "license": "MIT",
   "private": true,
   "workspaces": {
-    "packages": ["playground/mobile-sandbox", "samples/mobile/*", "samples/mobile/widgets/*", "samples/mobile/feature/*"],
+    "packages": [
+      "playground/mobile-sandbox",
+      "samples/mobile/*",
+      "samples/mobile/widgets/*",
+      "samples/mobile/feature/*"
+    ],
     "// nohoist": "Packages listed below are not hoisted to root. They stay in each workspace's node_modules so Metro (mobile) can resolve them from playground/mobile-sandbox. Web/Nx continue to use root node_modules.",
     "nohoist": [
       "**/axios",
@@ -27,21 +32,22 @@
     "postinstall": "node tools/scripts/patch-mui-esm.js"
   },
   "dependencies": {
-
+    "@cdx-extensions/di-sdk": "1.1.2",
+    "@cdx-extensions/di-sdk-mobile": "2.1.2",
+    "@cdx-extensions/di-sdk-types": "1.1.2",
+    "@cdx-extensions/di-sdk-web": "2.1.2",
+    "@cdx-extensions/widget-template-mobile": "1.1.3",
+    "@cdx-extensions/widget-template-web": "1.1.2",
     "@emotion/react": "11.11.1",
     "@emotion/styled": "11.11.0",
     "@mui/icons-material": "7.3.4",
     "@mui/material": "7.3.4",
     "@mui/system": "7.3.3",
+    "axios": "1.14.0",
+    "cache": "^3.0.0",
+    "clear": "^0.1.0",
     "react": "18.2.0",
-    "react-dom": "18.2.0",
-    "@cdx-extensions/di-sdk": "1.1.2",
-    "@cdx-extensions/di-sdk-web": "2.1.2",
-    "@cdx-extensions/di-sdk-types": "1.1.2",
-    "@cdx-extensions/di-sdk-mobile": "2.1.2",
-    "@cdx-extensions/widget-template-web": "1.1.2",
-    "@cdx-extensions/widget-template-mobile": "1.1.3",
-    "axios": "1.14.0"
+    "react-dom": "18.2.0"
   },
   "devDependencies": {
     "@babel/core": "^7.14.5",
@@ -50,6 +56,7 @@
     "@babel/plugin-syntax-dynamic-import": "^7.8.3",
     "@babel/preset-react": "^7.14.5",
     "@emotion/babel-plugin": "11.11.0",
+    "@eslint/js": "8.57.0",
     "@module-federation/enhanced": "~0.2.3",
     "@nx/eslint": "19.6.5",
     "@nx/eslint-plugin": "19.6.5",
@@ -78,7 +85,6 @@
     "@typescript-eslint/parser": "7.18.0",
     "babel-jest": "29.7.0",
     "core-js": "3.36.1",
-    "@eslint/js": "8.57.0",
     "eslint": "8.57.0",
     "eslint-config-prettier": "9.1.0",
     "eslint-plugin-import": "2.29.1",

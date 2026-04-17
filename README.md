@@ -6,6 +6,18 @@ Reference monorepo for **Candescent Digital Experience (CDX) extensibility**.
 - Sample **web** widgets that integrate with the CDX SDKs and the banking platform
 - Sample **mobile** packages that integrate with the CDX SDKs and the banking platform
 - Working examples to use as a starting point for your own extensions
+- A local OLB Web Playground (Docker) for end-to-end widget/aspects testing
+
+---
+
+## 🐳 OLB Web Playground — Docker Image
+
+> **Looking for the Docker image?**
+> The `ghcr.io/candescent-dev/olb-playground` image lets you run a full local OLB environment to test your web widgets without any Candescent network access.
+>
+> **[→ OLB Web Playground setup guide](playground/web/README.md)**
+
+---
 
 **Package manager:** This workspace uses **npm**. Use `npm install` from the repo root, unless a child README says otherwise.
 
@@ -36,6 +48,7 @@ npm install
 | **Web** | Module Federation widgets that load into the online banking (OLB) web app at runtime | [samples/web/README.md](samples/web/README.md) |
 | **Mobile** | React Native packages (widgets and features) published to npm and consumed by the mobile banking app | [samples/mobile/README.md](samples/mobile/README.md) |
 | **Mobile Sandbox** | Expo test app for running mobile packages locally | [playground/mobile-sandbox/README.md](playground/mobile-sandbox/README.md) |
+| **Web Playground** | Docker image — run a full local OLB instance to test your web widgets against the real shell | [playground/web/README.md](playground/web/README.md) |
 
 **Technical note:** Web and mobile share the same SDK surface (`@cdx-extensions/di-sdk`); packaging and hosting differ (Module Federation vs npm packages). Pinned dependency versions are in **[Shared dependencies](#shared-dependencies)** below.
 
@@ -155,6 +168,8 @@ npm install
 | **[samples/web/README.md](samples/web/README.md)** | Web widgets, local widget development, Module Federation and OLB integration, Nx targets, creating widgets |
 | **[samples/mobile/README.md](samples/mobile/README.md)** | Mobile widgets and features, Nx and tsup, creating mobile widgets, links to the sandbox |
 | **[playground/mobile-sandbox/README.md](playground/mobile-sandbox/README.md)** | Expo **mobile sandbox**: prerequisites, running on iOS/Android, how samples are wired, Metro and troubleshooting |
+| **[playground/web/README.md](playground/web/README.md)** | **OLB web playground**: Docker image setup, connecting your widget, available slots, runtime API, troubleshooting |
+| **[samples/web/aspects/README.md](samples/web/aspects/README.md)** | **Aspect sample scripts**: what each script does, how to inject into real OLB (via platform team) and OLB Playground (via curl or UI) |
 
 Start from the area you are building (web or mobile); follow that README end-to-end before changing build or registry settings.
 

@@ -25,8 +25,7 @@ nx serve investmentportfolio-widget # Opens at http://localhost:4302
 
 ## Widgets in this repo
 
-Three reference widgets are included. Use them as working examples when building your own.
-
+Three reference widgets are included. Use them as working examples when building your own. You can test any widget against a full local OLB instance using the **[OLB Web Playground](../../playground/web/README.md)** — no Candescent network access required.
 ### agent-widget — Bring Your Own Agent (BYOA)
 
 An AI-powered chat assistant that integrates with the OLB platform.
@@ -146,6 +145,12 @@ Copy `samples/web/widgets/agent-widget`, `samples/web/widgets/qa-automation-widg
 - Only use packages from the [Shared dependencies](../../README.md#shared-dependencies) table in the repository root README
 
 ---
+
+## Testing against the OLB Playground
+
+Once your widget is serving locally, test it inside a real OLB shell using the **OLB Web Playground** — a Docker image that runs the full banking platform and mock BFF on your machine.
+
+> **Full guide:** [playground/web/README.md](../../playground/web/README.md)
 
 ## Using the CDX SDK
 

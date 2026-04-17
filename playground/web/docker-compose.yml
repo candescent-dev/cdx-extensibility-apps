@@ -1,0 +1,28 @@
+###############################################################################
+# OLB Web Playground — docker-compose
+#
+# Usage (from this folder):
+#   docker compose pull
+#   docker compose up
+#
+# Then open http://localhost:4200
+#
+# Image download: https://github.com/orgs/candescent-dev/packages/container/package/olb-playground
+###############################################################################
+
+services:
+  olb:
+    image: ghcr.io/candescent-dev/olb-playground:1.0.0
+    ports:
+      - "4200:4200"   # banking-platform shell — open this in browser
+      - "4201:4201"   # greeting-widget
+      - "4202:4202"   # messages-widget
+      - "4205:4205"   # purchase-rewards-widget
+      - "4209:4209"   # quick-actions-widget
+      - "4210:4210"   # billpay-widget
+      - "4216:4216"   # transfers-widget
+      - "4219:4219"   # widget-stack
+      - "4220:4220"   # widget1
+      - "4223:4223"   # fdic-widget (primary slot for your external widget)
+      - "4226:4226"   # my-accounts-widget
+    restart: unless-stopped
