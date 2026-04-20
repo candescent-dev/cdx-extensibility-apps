@@ -8,7 +8,9 @@
       "playground/mobile-sandbox",
       "samples/mobile/*",
       "samples/mobile/widgets/*",
-      "samples/mobile/feature/*"
+      "samples/mobile/feature/*",
+      "features/mobile/*",
+      "widgets/mobile/*"
     ],
     "// nohoist": "Packages listed below are not hoisted to root. They stay in each workspace's node_modules so Metro (mobile) can resolve them from playground/mobile-sandbox. Web/Nx continue to use root node_modules.",
     "nohoist": [
@@ -36,8 +38,8 @@
     "@cdx-extensions/di-sdk-mobile": "2.1.2",
     "@cdx-extensions/di-sdk-types": "1.1.2",
     "@cdx-extensions/di-sdk-web": "2.1.2",
-    "@cdx-extensions/widget-template-mobile": "1.1.3",
-    "@cdx-extensions/widget-template-web": "1.1.2",
+    "@cdx-extensions/widget-template-mobile": "1.1.4",
+    "@cdx-extensions/widget-template-web": "1.1.4",
     "@emotion/react": "11.11.1",
     "@emotion/styled": "11.11.0",
     "@mui/icons-material": "7.3.4",

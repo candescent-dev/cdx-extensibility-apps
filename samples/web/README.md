@@ -84,7 +84,7 @@ nx build investmentportfolio-widget --configuration=production
 
 **Available configurations:** `production`, `stage`, `qal`, `preprod`, `demo`, `development`.
 
-Build output is written to `dist/apps/<widget-name>/` (unchanged for CI; widget source lives under `samples/web/widgets/`).
+Build output is written to `dist/apps/<widget-name>/` (unchanged for CI; widget source lives under `widgets/web/`).
 
 ### 3. Create a new widget
 
@@ -100,10 +100,10 @@ Example:
 nx generate @cdx-extensions/widget-template-web:widget my-widget
 ```
 
-This scaffolds a new app under `samples/web/widgets/` with the following structure — **do not rename, move, or delete any of these files**:
+This scaffolds a new app under `widgets/web/` with the following structure — **do not rename, move, or delete any of these files**:
 
 ```
-samples/web/widgets/<your-widget>/
+widgets/web/<your-widget>/
 ├── src/
 │   ├── app/                        ← your widget component code lives here
 │   ├── environments/               ← environment config per build configuration
@@ -136,7 +136,7 @@ samples/web/widgets/<your-widget>/
 
 **Option B – Copy an existing widget**
 
-Copy `samples/web/widgets/agent-widget`, `samples/web/widgets/qa-automation-widget`, or `samples/web/widgets/investmentportfolio-widget` as a starting point and rename it. When doing this:
+Copy `widgets/web/agent-widget`, `widgets/web/qa-automation-widget`, or `widgets/web/investmentportfolio-widget` as a starting point and rename it. When doing this:
 
 - Do **not** delete or modify existing entries in `package.json`
 - Do **not** change dependency versions
@@ -188,7 +188,7 @@ Every widget in this repo is a **Module Federation remote**. This is the mechani
 This is the most important file in your widget. It defines the two values OLB needs to locate and load it:
 
 ```ts
-// samples/web/widgets/agent-widget/module-federation.config.ts
+// widgets/web/agent-widget/module-federation.config.ts
 const config: ModuleFederationConfig = {
   disableNxRuntimeLibraryControlPlugin: true, // required — do not remove
   name: 'agent-widget',                        // ← Remote name
@@ -199,7 +199,7 @@ const config: ModuleFederationConfig = {
 ```
 
 ```ts
-// samples/web/widgets/qa-automation-widget/module-federation.config.ts
+// widgets/web/qa-automation-widget/module-federation.config.ts
 const config: ModuleFederationConfig = {
   disableNxRuntimeLibraryControlPlugin: true,
   name: 'qa-automation-widget',
@@ -210,7 +210,7 @@ const config: ModuleFederationConfig = {
 ```
 
 ```ts
-// samples/web/widgets/investmentportfolio-widget/module-federation.config.ts
+// widgets/web/investmentportfolio-widget/module-federation.config.ts
 const config: ModuleFederationConfig = {
   disableNxRuntimeLibraryControlPlugin: true,
   name: 'investmentportfolio-widget',
@@ -353,7 +353,7 @@ Install [Nx Console](https://nx.dev/nx-console) for VSCode or IntelliJ to get au
 
 If you fork or rename this template, update:
 
-- **`samples/web/widgets/<widget>/project.json`** – replace the `name` field with your widget name
+- **`widgets/web/<widget>/project.json`** – replace the `name` field with your widget name
 - **`package.json`** – replace `"name"` with your project name
 - **`.github/workflows/build-and-deploy-gcp.yaml`** – update the `gcp_bucket` default and `gcs_object_url` for your environment
 - **`.whitesource/wss-unified-agent.config`** – set `projectName` and `productName` for your WhiteSource project

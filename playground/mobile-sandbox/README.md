@@ -1,6 +1,6 @@
 # Mobile Sandbox (Expo)
 
-Runner app for CDX Extensibility **mobile** samples. It loads workspace packages from `samples/mobile/*` inside React Native + Expo so you can develop and validate against the mobile SDK harness.
+Runner app for CDX Extensibility **mobile** packages. It loads workspace packages from `widgets/mobile/*`, `features/mobile/*`, and `samples/mobile/*` inside React Native + Expo so you can develop and validate against the mobile SDK harness.
 
 ---
 

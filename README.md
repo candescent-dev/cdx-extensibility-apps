@@ -46,7 +46,9 @@ npm install
 | Platform | What's Inside | Entry Point |
 |----------|---------------|-------------|
 | **Web** | Module Federation widgets that load into the online banking (OLB) web app at runtime | [samples/web/README.md](samples/web/README.md) |
-| **Mobile** | React Native packages (widgets and features) published to npm and consumed by the mobile banking app | [samples/mobile/README.md](samples/mobile/README.md) |
+| **Mobile Widgets** | Generated React Native widgets (created by the starter template) | `widgets/mobile/` |
+| **Mobile Features** | Generated React Native features (created by the starter template) | `features/mobile/` |
+| **Mobile Samples** | Reference mobile packages (agent-feature, investment-portfolio) | [samples/mobile/README.md](samples/mobile/README.md) |
 | **Mobile Sandbox** | Expo test app for running mobile packages locally | [playground/mobile-sandbox/README.md](playground/mobile-sandbox/README.md) |
 | **Web Playground** | Docker image — run a full local OLB instance to test your web widgets against the real shell | [playground/web/README.md](playground/web/README.md) |
 
