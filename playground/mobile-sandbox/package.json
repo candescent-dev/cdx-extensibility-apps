@@ -12,7 +12,7 @@
     "@cdx-extensions-examples/agent-feature": "file:../../samples/mobile/feature/agent-feature",
     "@cdx-extensions-examples/investment-portfolio": "file:../../samples/mobile/widgets/investment-portfolio",
     "@cdx-extensions/di-sdk": "1.1.2",
-    "@cdx-extensions/di-sdk-mobile": "2.1.2",
+    "@cdx-extensions/di-sdk-mobile": "2.1.3",
     "@react-navigation/bottom-tabs": "^7.3.10",
     "@react-navigation/native": "^7.1.6",
     "axios": "0.27.2",

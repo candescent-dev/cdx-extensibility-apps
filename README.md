@@ -132,7 +132,7 @@ npm install
 | `react-native`                            | 0.76.9               |
 | `expo`                                    | ^52.0.0 (optional)   |
 | `@cdx-extensions/di-sdk`                  | 1.1.2                |
-| `@cdx-extensions/di-sdk-mobile`           | 2.1.2                |
+| `@cdx-extensions/di-sdk-mobile`           | 2.1.3                |
 | `@cdx-extensions/di-sdk-types`            | 1.1.2                |
 | `@cdx-extensions/widget-template-mobile`  | 1.1.2                |
 | `axios`                                   | 0.27.2               |
