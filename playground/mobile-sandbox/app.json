@@ -6,6 +6,7 @@
     "version": "0.0.1",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
+    "icon": "./assets/expo-app-icon.png",
     "assetBundlePatterns": [
       "**/*"
     ],
@@ -14,7 +15,17 @@
       "bundleIdentifier": "com.anonymous.mobilesandbox"
     },
     "android": {
-      "package": "com.anonymous.mobilesandbox"
+      "package": "com.anonymous.mobilesandbox",
+      "icon": "./assets/expo-android-adaptive-foreground.png",
+      "splash": {
+        "image": "./assets/expo-android-adaptive-foreground.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#FFFFFF"
+      },
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/expo-android-adaptive-foreground.png",
+        "backgroundColor": "#FFFFFF"
+      }
     },
     "plugins": [],
     "web": {

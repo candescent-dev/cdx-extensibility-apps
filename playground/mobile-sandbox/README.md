@@ -65,6 +65,24 @@ a    # Android emulator
 
 ---
 
+## Single-target preview
+
+For fast iteration on a single widget or feature, append a registry id as a positional argument. The sandbox bypasses tabs and renders just that widget/feature with a thin chrome plus the `BrandingPicker`.
+
+```bash
+npx nx start   mobile-sandbox agent-chat
+npx nx ios     mobile-sandbox investment-portfolio
+npx nx android mobile-sandbox investment-portfolio
+```
+
+Valid ids are any `id` in [`registry/WIDGET_REGISTRY.ts`](registry/WIDGET_REGISTRY.ts) or [`registry/FEATURE_REGISTRY.tsx`](registry/FEATURE_REGISTRY.tsx). Omit the id to launch the full sandbox as usual.
+
+The Nx targets ensure **both** `investment-portfolio` and `agent-feature` have a built `dist/` (Metro resolves `main` there). Nx **reuses the cache** when those packages have not changed, so repeat `nx start` / preview runs are quick. To force a clean rebuild, run `npx nx reset` or pass `--skip-nx-cache` on a one-off `nx run-many` / `nx run` for the sample project you edited.
+
+> Advanced: when invoking via plain `npm run start --workspace=mobile-sandbox`, set `EXPO_PUBLIC_PREVIEW_TARGET=<id>` instead — the Nx wrapper just forwards the positional id into that env var. **Unset** that variable (or omit the id when using Nx) before a full sandbox run; a leftover export can keep you in preview mode or confuse Metro.
+
+---
+
 ## Making changes to samples
 
 **After you edit a sample library**, rebuild it before the sandbox picks up changes:
@@ -96,9 +114,14 @@ Then reload the Expo app (shake device or press `R` in terminal).
 | **Metro can't resolve a workspace package** | Check `watchFolders`, `nodeModulesPaths`, and `extraNodeModules` in `metro.config.js`. Run `npm install` from the repo root. |
 | **Axios / Node crypto errors in React Native** | Keep `axios` on the version in **[Shared dependencies](../../README.md#shared-dependencies)** (mobile table). Prefer the platform HTTP client from the CDX SDK where possible. |
 | **Changes to samples not appearing** | Rebuild the sample package (see [Making changes to samples](#making-changes-to-samples) above), then reload the Expo app. |
+| **“Unknown preview target” (e.g. got your `--fiId`)** | Preview must match the **`id`** in [`registry/WIDGET_REGISTRY.ts`](registry/WIDGET_REGISTRY.ts) or [`registry/FEATURE_REGISTRY.tsx`](registry/FEATURE_REGISTRY.tsx). For the starter template, that id is the **`--name`** you passed to `nx g …:widget`, not **`--fiId`**. Example: `npx nx start mobile-sandbox my-widget` if you used `--name=my-widget`. |
+| **Single-target id ignored; always see the portfolio widget** | You are likely in the **full** sandbox on the default Widget tab. Preview reads `EXPO_PUBLIC_PREVIEW_TARGET` first; restart Metro after changing the id. Clear a stale export: `unset EXPO_PUBLIC_PREVIEW_TARGET`. |
+| **After preview, `nx start mobile-sandbox` “does nothing” / wrong UI** | `run-with-preview.mjs` clears `EXPO_PUBLIC_PREVIEW_TARGET` when you omit the id. If you started Expo outside that script, unset the variable manually. If Metro says port `8083` is in use, stop the other dev server or free the port. |
 | **Port 8083 already in use** | Stop other Metro instances or change the port in `project.json`. |
 | **iOS build fails** | Ensure Xcode and iOS Simulator are installed (macOS only). See [Expo iOS setup](https://docs.expo.dev/workflow/ios-simulator/). |
 | **Android build fails** | Ensure Android Studio, SDK, and emulator are set up. See [Expo Android setup](https://docs.expo.dev/workflow/android-studio-emulator/). |
+| **`Expo Go is not installed` / `running in offline mode`** | `npx nx start mobile-sandbox` runs online by default so Expo can install Expo Go when you press **`a`** or **`i`**. If you set `MOBILE_SANDBOX_EXPO_OFFLINE=1` (VPN workaround), install [Expo Go](https://expo.dev/go) on the emulator/device first, or unset that variable. |
+| **App won’t load in Expo Go after pulling `develop`** | Recent `develop` uses **Expo SDK 54** (was SDK 52). Run `npm install` from the repo root, update Expo Go on the emulator/device, then restart Metro. |
 
 **Still stuck?** Contact the Candescent platform team.
 

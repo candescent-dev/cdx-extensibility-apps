@@ -7,21 +7,23 @@
     "start": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "npx nx run investment-portfolio:build --skip-nx-cache && CI=0 npm run start --workspace=mobile-sandbox -- --clear --port 8083"
+        "command": "npx nx run-many -t build -p investment-portfolio,agent-feature && node ./playground/mobile-sandbox/scripts/run-with-preview.mjs --platform=start",
+        "forwardAllArgs": true
       }
     },
     "android": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "npx nx run investment-portfolio:build --skip-nx-cache && CI=0 npm run android --workspace=mobile-sandbox"
+        "command": "npx nx run-many -t build -p investment-portfolio,agent-feature && node ./playground/mobile-sandbox/scripts/run-with-preview.mjs --platform=android",
+        "forwardAllArgs": true
       }
     },
     "ios": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "npx nx run investment-portfolio:build --skip-nx-cache && npm run ios --workspace=mobile-sandbox"
+        "command": "npx nx run-many -t build -p investment-portfolio,agent-feature && node ./playground/mobile-sandbox/scripts/run-with-preview.mjs --platform=ios",
+        "forwardAllArgs": true
       }
     }
   }
 }
-

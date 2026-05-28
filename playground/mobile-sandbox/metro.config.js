@@ -6,6 +6,14 @@ const workspaceRoot = path.resolve(projectRoot, '../..');
 
 const config = getDefaultConfig(projectRoot);
 
+// Import `.svg` as react-native-svg components (SVGR + Expo transformer chain).
+config.transformer = {
+  ...config.transformer,
+  babelTransformerPath: require.resolve('react-native-svg-transformer/expo'),
+};
+config.resolver.assetExts = config.resolver.assetExts.filter((ext) => ext !== 'svg');
+config.resolver.sourceExts = [...config.resolver.sourceExts, 'svg'];
+
 // Make Metro aware of the monorepo/workspace.
 config.watchFolders = [workspaceRoot];
 config.resolver.nodeModulesPaths = [
@@ -50,4 +58,3 @@ config.resolver.extraNodeModules = new Proxy(
 );
 
 module.exports = config;
-

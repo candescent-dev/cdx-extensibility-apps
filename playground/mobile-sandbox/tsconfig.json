@@ -2,17 +2,19 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "baseUrl": ".",
+    "skipLibCheck": true,
     "paths": {
       "@cdx-extensions-examples/agent-feature": [
-        "../../samples/mobile/feature/agent-feature/src/index.ts"
+        "../../samples/mobile/feature/agent-feature/dist/index.d.ts"
       ],
       "@cdx-extensions-examples/investment-portfolio": [
-        "../../samples/mobile/widgets/investment-portfolio/src/index.ts"
+        "../../samples/mobile/widgets/investment-portfolio/dist/index.d.ts"
       ]
     },
     "jsx": "react-jsx",
     "lib": ["es2020", "dom"],
     "types": ["react", "react-native"]
   },
-  "include": ["App.tsx", "**/*.ts", "**/*.tsx"]
+  "include": ["App.tsx", "**/*.ts", "**/*.tsx", "**/*.d.ts"],
+  "exclude": ["../../samples/**", "**/node_modules/**"]
 }

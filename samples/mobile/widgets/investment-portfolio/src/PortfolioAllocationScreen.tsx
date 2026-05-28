@@ -23,6 +23,9 @@ import { PortfolioLegend } from './components/PortfolioLegend';
 import { usePortfolioData } from './hooks/usePortfolioData';
 import { useWelcomeUser } from './hooks/useWelcomeUser';
 
+/** Typical horizontal margin on paper when `scrollable={false}` inside a parent `ScrollView` (host adds no inset). */
+const HOSTED_ACCOUNTS_CARD_MARGIN_H = 16;
+
 function formatCurrency(value: number): string {
   return `$${value.toLocaleString('en-US')}`;
 }
@@ -33,9 +36,23 @@ export interface PortfolioAllocationScreenProps {
    * Set to false when embedded inside another ScrollView to avoid nested same-direction scrolling.
    */
   scrollable?: boolean;
+  /** @deprecated Prefer hosted layout when the parent supplies full width (no outer chrome). Kept for one-off embeds. */
+  embedded?: boolean;
+  /** Authenticated API client from the embedding app (e.g. Platform SDK). */
+  httpClient?: unknown;
+  /** Layout widget id / name from host config. */
+  name?: string;
+  /** Host modal ref for overlays / dismiss when embedded. */
+  modalRef?: React.RefObject<unknown | null> | null;
 }
 
-export function PortfolioAllocationScreen({ scrollable = true }: PortfolioAllocationScreenProps) {
+export function PortfolioAllocationScreen({
+  scrollable = true,
+  embedded = false,
+  httpClient: _httpClient,
+  name: _name,
+  modalRef: _modalRef,
+}: PortfolioAllocationScreenProps) {
   const { data, totalValue, refreshKey, isLoading, error, refresh } = usePortfolioData();
   const { userName, isLoading: userLoading } = useWelcomeUser();
 
@@ -52,10 +69,19 @@ export function PortfolioAllocationScreen({ scrollable = true }: PortfolioAlloca
 
   const hasData = data != null && totalValue != null;
 
+  const hostedOnAccountsScroll = !scrollable && !embedded;
+
   const content = (
-    <View style={[styles.widgetCard, { backgroundColor: cardBg }]}>
-      <View style={styles.content}>
-        <View style={styles.welcomeBanner}>
+    <View
+      style={[
+        styles.widgetCard,
+        embedded && styles.widgetCardEmbedded,
+        hostedOnAccountsScroll && styles.widgetCardHostedAccounts,
+        { backgroundColor: embedded ? 'transparent' : cardBg },
+      ]}
+    >
+      <View style={[styles.content, embedded && styles.contentEmbedded]}>
+        <View style={[styles.welcomeBanner, embedded && styles.welcomeBannerEmbedded]}>
         {userLoading ? (
           <ActivityIndicator size="small" color={primaryColor} />
         ) : userName ? (
@@ -141,8 +167,11 @@ export function PortfolioAllocationScreen({ scrollable = true }: PortfolioAlloca
   if (scrollable) {
     return (
       <ScrollView
-        style={[styles.root, { backgroundColor: bgColor }]}
-        contentContainerStyle={styles.contentContainer}
+        style={[
+          embedded ? styles.embeddedScrollHost : styles.root,
+          { backgroundColor: embedded ? 'transparent' : bgColor },
+        ]}
+        contentContainerStyle={[styles.contentContainer, embedded && styles.contentContainerEmbedded]}
         showsVerticalScrollIndicator={false}
       >
         {content}
@@ -150,8 +179,14 @@ export function PortfolioAllocationScreen({ scrollable = true }: PortfolioAlloca
     );
   }
 
+  /** Embedded in parent scroll: no outer wrapper — gray gutters come from paper `marginHorizontal`. */
   return (
-    <View style={[styles.root, styles.contentContainer, { backgroundColor: bgColor }]}>
+    <View
+      style={[
+        embedded ? styles.embeddedRoot : styles.hostedRoot,
+        { backgroundColor: embedded ? 'transparent' : bgColor },
+      ]}
+    >
       {content}
     </View>
   );
@@ -161,17 +196,50 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
   },
+  /** Avoid flex:1 when embedded in a parent ScrollView — it can collapse sibling slots to height 0. */
+  embeddedRoot: {
+    alignSelf: 'stretch',
+    width: '100%',
+  },
+  /** Full width of parent; host scroll typically has no horizontal `contentContainerStyle` pad for extension rows. */
+  hostedRoot: {
+    alignSelf: 'stretch',
+    width: '100%',
+  },
+  embeddedScrollHost: {
+    alignSelf: 'stretch',
+    width: '100%',
+    flexGrow: 0,
+  },
   contentContainer: {
     padding: 16,
     flexGrow: 1,
+  },
+  contentContainerEmbedded: {
+    padding: 0,
+    paddingBottom: 4,
+    flexGrow: 0,
   },
   widgetCard: {
     borderRadius: 8,
     overflow: 'hidden',
   },
+  widgetCardEmbedded: {
+    borderRadius: 0,
+    overflow: 'visible',
+  },
+  /** Inset paper on page background; horizontal margin owned by the widget. */
+  widgetCardHostedAccounts: {
+    marginHorizontal: HOSTED_ACCOUNTS_CARD_MARGIN_H,
+  },
   content: {
     padding: 20,
     gap: 12,
+  },
+  /** Tight padding when using a template-style outer shell (legacy embed). */
+  contentEmbedded: {
+    padding: 4,
+    gap: 8,
   },
   header: {
     flexDirection: 'row',
@@ -203,6 +271,9 @@ const styles = StyleSheet.create({
   },
   welcomeBanner: {
     paddingTop: 12,
+  },
+  welcomeBannerEmbedded: {
+    paddingTop: 0,
   },
   welcomeText: {
     fontSize: 18,

@@ -115,27 +115,27 @@ npm install
 | `@mui/icons-material`                     | 7.3.4      |
 | `@mui/material`                           | 7.3.4      |
 | `@mui/system`                             | 7.3.3      |
-| `axios`                                   | 1.14.0     |
+| `axios`                                   | 1.15.0     |
 | `react`                                   | 18.2.0     |
 | `react-dom`                               | 18.2.0     |
 | `react-router-dom`                        | ^6.12.1    |
-| `@cdx-extensions/di-sdk`                  | 1.1.2      |
-| `@cdx-extensions/di-sdk-web`              | 2.1.2      |
-| `@cdx-extensions/di-sdk-types`            | 1.1.2      |
-| `@cdx-extensions/widget-template-web`     | 1.1.2      |
+| `@cdx-extensions/di-sdk`                  | 1.1.4      |
+| `@cdx-extensions/di-sdk-web`              | 2.1.4      |
+| `@cdx-extensions/di-sdk-types`            | 1.1.4      |
+| `@cdx-extensions/widget-template-web`     | 1.1.4      |
 
 ### Mobile (React Native packages)
 
 | Package                                   | Version              |
 |-------------------------------------------|----------------------|
-| `react`                                   | 18.3.1               |
-| `react-native`                            | 0.76.9               |
-| `expo`                                    | ^52.0.0 (optional)   |
-| `@cdx-extensions/di-sdk`                  | 1.1.2                |
-| `@cdx-extensions/di-sdk-mobile`           | 2.1.3                |
-| `@cdx-extensions/di-sdk-types`            | 1.1.2                |
-| `@cdx-extensions/widget-template-mobile`  | 1.1.2                |
-| `axios`                                   | 0.27.2               |
+| `react`                                   | 19.1.4               |
+| `react-native`                            | 0.81.6               |
+| `expo`                                    | ~54.0.0 (optional)   |
+| `@cdx-extensions/di-sdk`                  | 1.1.4                |
+| `@cdx-extensions/di-sdk-mobile`           | 2.1.4                |
+| `@cdx-extensions/di-sdk-types`            | 1.1.4                |
+| `@cdx-extensions/widget-template-mobile`  | 1.1.6                |
+| `axios`                                   | 1.15.0               |
 | `axios-mock-adapter`                      | ^2.1.0               |
 
 > **⚠️ WARNING: Do not add dependencies without approval**
@@ -154,6 +154,7 @@ npm install
 
 | Issue | Solution |
 |-------|----------|
+| **`npm install` fails with peer dependency conflicts (React)** | The repo pins **React 18** at the root for **web** while **mobile** (`playground/mobile-sandbox`) uses **React 19** + RN 0.81.x. `.npmrc` enables **`legacy-peer-deps`** so npm can install both trees. Run **`npm install` from the repo root** only. |
 | **`npm install` fails with 401/403 errors** | Check your `.npmrc` configuration. See [step 3](#3-configure-npmrc) above. |
 | **`command not found: nx`** | Either install Nx globally (`npm install -g nx`) or use `npx nx` instead. |
 | **Metro/Webpack errors about missing dependencies** | Run `npm install` from the **repo root**, not from a subdirectory. This is an npm workspace — all packages must install together. |

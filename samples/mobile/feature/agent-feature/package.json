@@ -20,7 +20,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "peerDependencies": {
-    "@cdx-extensions/di-sdk": "1.1.2",
+    "@cdx-extensions/di-sdk": "1.1.4",
     "expo": ">=50",
     "react": ">=18",
     "react-native": ">=0.73"
@@ -31,9 +31,9 @@
     }
   },
   "devDependencies": {
-    "@types/react": "^18.2.33",
-    "react": "18.3.1",
-    "react-native": "0.76.9",
+    "@types/react": "^19.1.4",
+    "react": "19.1.4",
+    "react-native": "0.81.6",
     "tsup": "^8.0.0",
     "typescript": "^5.5.0"
   }

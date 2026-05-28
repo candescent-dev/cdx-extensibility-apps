@@ -30,7 +30,7 @@ The image contains:
 
 ## Quick Start
 
-The `docker-compose.yml` file is already in this folder— no download needed. if not already done, clone the repo and navigate to this directory:
+The `docker-compose.yml` file is already in this folder (playground/web) — no download needed. if not already done, clone the repo and navigate to this directory:
 cdx-extensibility-apps/playground/web
 
 ```bash
@@ -44,7 +44,7 @@ docker pull ghcr.io/candescent-dev/olb-playground:1.0.0
 > The image is hosted at the [Candescent GitHub packages registry](https://github.com/orgs/candescent-dev/packages/container/package/olb-playground). First pull is ~500 MB and is cached for subsequent runs.
 
 ### Step 2 — Start
-Ensure to run this command from folder where your docker-compose.yml is located (this folder):
+Ensure to run this command from folder where your docker-compose.yml is located (playground/web):
 ```bash
 docker compose up or docker compose up -d (for background)
 ```
@@ -175,22 +175,12 @@ Click **Delete** next to an aspect to remove it immediately. Refresh **http://lo
 
 ## Troubleshooting
 
-### Container exits immediately after `docker compose up`
-
-Check the logs:
-
-```bash
-docker compose logs olb-playground
-```
-
-The internal BFF must start within 30 seconds. If it fails, the container exits. Try `docker compose up` again.
-
 ### OLB loads but shows blank / no widgets
 
 The container needs a few seconds to fully initialise. Wait for `[playground] Playground ready` in the logs then refresh. Also check:
 
 ```bash
-docker compose ps   # should show "running"
+docker compose ps   # should be running
 ```
 
 ### My widget doesn't appear after mounting
