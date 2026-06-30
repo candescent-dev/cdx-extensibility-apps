@@ -8,10 +8,10 @@ Use this playground to develop and validate your CDX web widgets and JavaScript 
 
 ## Docker image
 
-| |                                                                                                                                                              |
-|---|--------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **Image** | `ghcr.io/candescent-dev/olb-playground:1.0.0`                                                                                                                |
-| **Registry** | [github.com/orgs/candescent-dev/packages/container/package/olb-playground](https://github.com/orgs/candescent-dev/packages/container/package/olb-playground) |
+| | |
+|---|---|
+| **Image** | `ghcr.io/candescent-dev/olb-playground:latest` |
+| **Registry** | [candescent-dev/olb-playground](https://github.com/orgs/candescent-dev/packages/container/package/olb-playground) |
 
 The image contains:
 - **nginx** serving the banking-platform shell and all internal widget MF remotes
@@ -33,15 +33,15 @@ The image contains:
 The `docker-compose.yml` file is already in this folder (playground/web) — no download needed. if not already done, clone the repo and navigate to this directory:
 cdx-extensibility-apps/playground/web
 
-```bash
-
 ### Step 1 — Pull the image
 
 ```bash
-docker pull ghcr.io/candescent-dev/olb-playground:1.0.0
+docker compose pull
 ```
 
 > The image is hosted at the [Candescent GitHub packages registry](https://github.com/orgs/candescent-dev/packages/container/package/olb-playground). First pull is ~500 MB and is cached for subsequent runs.
+
+To use a specific image version, see [Using a specific image version](./README.md#using-a-specific-image-version) below.
 
 ### Step 2 — Start
 Ensure to run this command from folder where your docker-compose.yml is located (playground/web):
@@ -170,6 +170,27 @@ Click **Delete** next to an aspect to remove it immediately. Refresh **http://lo
 | 4220 | widget1 / Widget 01 (MF remote — primary dev slot) |
 | 4223 | fdic-widget (MF remote) |
 | 4226 | my-accounts-widget (MF remote) |
+
+---
+
+<h2 id="using-a-specific-image-version">Using a specific image version</h2>
+
+By default, `docker-compose.yml` uses the **`latest`** tag. That is the recommended starting point for most development.
+
+If you need an older release — for example, to match a version you validated against in a prior integration — edit the `image` line in `docker-compose.yml` and replace `latest` with the tag you want. Available tags are listed on the [GHCR package page](https://github.com/orgs/candescent-dev/packages/container/package/olb-playground).
+
+```yaml
+services:
+  olb:
+    image: ghcr.io/candescent-dev/olb-playground:1.0.0
+```
+
+Then pull and start:
+
+```bash
+docker compose pull
+docker compose up
+```
 
 ---
 
