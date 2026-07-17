@@ -72,6 +72,7 @@ Before installing, ensure you have the required tools:
 | **Node.js** | 18 LTS or 20 LTS | Required for all development |
 | **npm** | 9+ | Package manager for this workspace. Not every Node 18.x release bundles npm 9+; upgrade npm if `npm -v` is below 9 (for example `npm install -g npm@9`). |
 | **Nx** | (optional) | Can use `npx nx` instead of global install |
+| **GitHub CLI (`gh`)** | latest | Required for `npm run submit-to-fi` — list and create PRs in your FI repo |
 
 **Install Node.js:** [https://nodejs.org/](https://nodejs.org/)
 
@@ -97,6 +98,68 @@ npm install
 - **Building mobile packages?** → Continue to [samples/mobile/README.md](samples/mobile/README.md)
 
 **Install failed?** See [Troubleshooting](#troubleshooting) below.
+
+## Submit to FI extensions repo
+
+After you build and test a widget, feature, or aspect in this repo, use the submit script to copy it into your **FI extensions repo** and open or update a GitHub PR there.
+
+```bash
+npm run submit-to-fi
+```
+
+Prompts for: FI repo Git URL, local clone path, and project name (widget, feature, or aspect).
+
+This is a convenience wrapper around `node tools/scripts/submit-to-fi-repo.js` — both commands do the same thing.
+
+### What it does
+
+1. **Finds the project** in this repo by name (web widget, mobile widget, mobile feature, or web aspect).
+2. **Clones or reuses** a local copy of your FI extensions repo.
+3. **Syncs source files** into the matching path in the FI repo (excludes `node_modules`, `dist`, `.nx`, `coverage`, `.expo`).
+4. **Commits and pushes** only the synced project path (not build artifacts or cache).
+5. **Creates or updates a PR** in the FI repo via `gh`.
+
+If the project has a `metadata.json`, its contents are added to the PR description.
+
+### Supported project types
+
+| Type | Looked up under |
+|------|-----------------|
+| Web widget | `widgets/web/`, `samples/web/widgets/` |
+| Mobile widget | `widgets/mobile/`, `samples/mobile/widgets/` |
+| Mobile feature | `features/mobile/`, `samples/mobile/feature/` |
+| Web aspect | `samples/web/aspects/` |
+
+If the same name exists in more than one location, the script prompts you to choose.
+
+### PR behavior
+
+- **New PR:** creates branch `feature/add-<project>-<timestamp>` and opens a PR against the FI repo default branch.
+- **Update existing PR:** if an open PR exists on a `feature/add-<project>*` branch, the script updates that PR instead (prompts when multiple match).
+- **Force new PR:** pass `--new-pr` to skip existing open PRs.
+
+### CLI flags
+
+All prompts can be skipped by passing flags:
+
+```bash
+npm run submit-to-fi -- \
+  --fi-url https://github.com/your-org/your-fi-extensions-repo \
+  --local-path ../your-fi-extensions-repo \
+  --project my-widget-name
+```
+
+| Flag | Description |
+|------|-------------|
+| `--fi-url` | Git URL of your FI extensions repo |
+| `--local-path` | Path to an existing FI repo clone, or a parent folder (cloned if missing) |
+| `--project` | Widget, feature, or aspect folder name |
+| `--new-pr` | Always create a new PR instead of updating an existing one |
+
+### Requirements
+
+- **git** — clone, commit, and push in the FI repo
+- **[GitHub CLI (`gh`)](https://cli.github.com/)** — list, create, and edit PRs (`gh auth login` with access to your FI repo)
 
 ## Shared dependencies
 

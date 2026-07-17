@@ -31,7 +31,8 @@
     ]
   },
   "scripts": {
-    "postinstall": "node tools/scripts/patch-mui-esm.js"
+    "postinstall": "node tools/scripts/patch-mui-esm.js",
+    "submit-to-fi": "node tools/scripts/submit-to-fi-repo.js"
   },
   "dependencies": {
     "@cdx-extensions/di-sdk": "1.1.4",
