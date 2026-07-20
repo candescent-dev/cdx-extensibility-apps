@@ -3,11 +3,12 @@
  * Syncs source files, then validates mobile packages in the FI repo when applicable.
  * A PR is created or updated after sync (and mobile `npm install` when relevant).
  *
- * Validation (no `npm install` at FI repo root — avoids JFrog auth there):
+ * Validation (no `npm install` at FI repo root — avoids private-registry auth there):
  *   - mobile widget/feature: `npm install` in the synced folder only
  *   - web / aspect: no validation step
  *
  * Only the synced project path is committed (not `.nx/cache`, `dist`, etc.).
+ * Root `package-lock.json` is staged only when mobile validation modified it.
  *
  * If open PR(s) exist for feature/add-<project>* branches, updates the selected PR
  * (prompts when multiple match). Otherwise creates a new branch and opens a new PR.
@@ -20,7 +21,6 @@
 /* eslint-disable no-console */
 
 const { spawnSync } = require('child_process');
-const fs = require('fs');
 const fsp = require('fs/promises');
 const path = require('path');
 const readline = require('readline/promises');
@@ -66,15 +66,9 @@ async function exists(p) {
 
 function runProcess(cmd, args, cwd) {
   console.log(`> ${cmd} ${args.join(' ')}`);
-  const executable =
-    process.platform === 'win32' && (cmd === 'npm' || cmd === 'npx')
-      ? `${cmd}.cmd`
-      : cmd;
-  const result = spawnSync(executable, args, {
-    cwd,
-    stdio: 'inherit',
-    shell: false,
-  });
+  const shell =
+    process.platform === 'win32' && (cmd === 'npm' || cmd === 'npx');
+  const result = spawnSync(cmd, args, { cwd, stdio: 'inherit', shell });
   if (result.status !== 0) {
     throw new Error(`Command failed: ${cmd} ${args.join(' ')}`);
   }
@@ -99,7 +93,6 @@ function normalizeGitUrl(url) {
     .replace(/\.git$/, '')
     .replace(/\/$/, '')
     .replace(/^git@([^:]+):/, 'https://$1/')
-    .replace(/^ssh:\/\/git@([^/]+)\//, 'https://$1/')
     .replace(/^https?:\/\//, '')
     .toLowerCase();
 }
@@ -126,21 +119,11 @@ function branchPrefix(project) {
   return `feature/add-${project}`;
 }
 
-function isNumericBranchSuffix(suffix) {
-  if (suffix === '') return true;
-  if (!suffix.startsWith('-')) return false;
-  const digits = suffix.slice(1);
-  if (!digits) return false;
-  for (const ch of digits) {
-    if (ch < '0' || ch > '9') return false;
-  }
-  return true;
-}
-
 function isPrBranchForProject(headRefName, project) {
   const prefix = branchPrefix(project);
   if (!headRefName.startsWith(prefix)) return false;
-  return isNumericBranchSuffix(headRefName.slice(prefix.length));
+  const suffix = headRefName.slice(prefix.length);
+  return suffix === '' || /^-\d+$/.test(suffix);
 }
 
 function findOpenPrsForProject(repoPath, project) {
@@ -208,17 +191,7 @@ function repoName(url) {
     .pop();
 }
 
-function assertSafeUserPath(userPath) {
-  if (!userPath || userPath.includes('\0')) {
-    throw new Error('Invalid local clone path.');
-  }
-  if (path.normalize(userPath).split(path.sep).includes('..')) {
-    throw new Error('Invalid local clone path: parent segments are not allowed.');
-  }
-}
-
 function resolveUserPath(userPath) {
-  assertSafeUserPath(userPath);
   return path.isAbsolute(userPath) ? userPath : path.resolve(ROOT, userPath);
 }
 
@@ -227,7 +200,9 @@ async function isGitRepo(dir) {
 }
 
 async function resolveLocalRepo(targetUrl, userPath) {
-  assertSafeUserPath(userPath);
+  if (userPath.includes('\0')) {
+    throw new Error('Invalid local clone path.');
+  }
   const name = repoName(targetUrl);
   const resolved = resolveUserPath(userPath);
 
@@ -421,10 +396,7 @@ function hasStagedChanges(repoPath) {
 
 function stageSyncedFiles(repoPath, source, includeLockfile = false) {
   runProcess('git', ['add', source.rel], repoPath);
-  if (
-    includeLockfile &&
-    fs.existsSync(path.join(repoPath, 'package-lock.json'))
-  ) {
+  if (includeLockfile && isTracked(repoPath, 'package-lock.json')) {
     runProcess('git', ['add', 'package-lock.json'], repoPath);
   }
 }
@@ -459,14 +431,21 @@ function assertWithinRepo(repoPath, targetPath) {
   }
 }
 
-async function validateFiRepoBuild(repoPath, source, project) {
+async function validateFiRepoBuild(repoPath, source) {
   console.log('\nValidating FI repo before creating PR...\n');
 
   const projectDir = path.join(repoPath, source.rel);
+  assertWithinRepo(repoPath, projectDir);
+
   if (source.type === 'mobile-feature' || source.type === 'mobile-widget') {
+    // Folder install only — do not run `npm install` at FI root (private registry / JFrog).
     runProcess('npm', ['install'], projectDir);
     return;
   }
+
+  console.log(
+    `Skipping validation for ${source.type} (no FI-repo install/build step).`,
+  );
 }
 
 async function main() {
@@ -572,7 +551,7 @@ async function main() {
       const lockfileBefore =
         (await exists(lockfilePath)) && (await fsp.readFile(lockfilePath));
 
-      await validateFiRepoBuild(localPath, source, project);
+      await validateFiRepoBuild(localPath, source);
       validated = true;
 
       let lockfileUpdatedByValidation = false;
@@ -593,7 +572,9 @@ async function main() {
         runProcess('git', ['push', '-u', 'origin', branch], localPath);
         pushed = true;
       } else {
-        console.log('\nNo file changes to commit — skipping commit and push.\n');
+        console.log(
+          '\nNo file changes to commit — skipping commit and push.\n',
+        );
       }
 
       const prDescription = await buildPrDescription(source);
@@ -607,7 +588,9 @@ async function main() {
         if (pushed) {
           console.log(`\nPushed update to PR #${openPr.number}: ${openPr.url}`);
         } else {
-          console.log(`\nUpdated PR #${openPr.number} description: ${openPr.url}`);
+          console.log(
+            `\nUpdated PR #${openPr.number} description: ${openPr.url}`,
+          );
         }
       } else {
         runProcess(
@@ -624,7 +607,7 @@ async function main() {
             '--body',
             prDescription,
           ],
-          localPath
+          localPath,
         );
       }
 
