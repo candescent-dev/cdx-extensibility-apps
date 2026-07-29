@@ -46,9 +46,9 @@ npm install
 | Platform | What's Inside | Entry Point |
 |----------|---------------|-------------|
 | **Web** | Module Federation widgets that load into the online banking (OLB) web app at runtime | [samples/web/README.md](samples/web/README.md) |
-| **Mobile Widgets** | Generated React Native widgets (created by the starter template) | `widgets/mobile/` |
-| **Mobile Features** | Generated React Native features (created by the starter template) | `features/mobile/` |
-| **Mobile Samples** | Reference mobile packages (agent-feature, investment-portfolio) | [samples/mobile/README.md](samples/mobile/README.md) |
+| **Mobile Widgets** | Generated React Native widgets | `widgets/mobile/` |
+| **Mobile Features** | Generated React Native features | `features/mobile/` |
+| **Mobile Samples** | Reference packages (investment-portfolio, agent-feature) | `samples/mobile/` |
 | **Mobile Sandbox** | Expo test app for running mobile packages locally | [playground/mobile-sandbox/README.md](playground/mobile-sandbox/README.md) |
 | **Web Playground** | Docker image — run a full local OLB instance to test your web widgets against the real shell | [playground/web/README.md](playground/web/README.md) |
 
@@ -178,14 +178,14 @@ npm run submit-to-fi -- \
 | `@mui/icons-material`                     | 7.3.4      |
 | `@mui/material`                           | 7.3.4      |
 | `@mui/system`                             | 7.3.3      |
-| `axios`                                   | 1.15.0     |
+| `axios`                                   | 1.16.0     |
 | `react`                                   | 18.2.0     |
 | `react-dom`                               | 18.2.0     |
 | `react-router-dom`                        | ^6.12.1    |
 | `@cdx-extensions/di-sdk`                  | 1.1.4      |
 | `@cdx-extensions/di-sdk-web`              | 2.1.4      |
 | `@cdx-extensions/di-sdk-types`            | 1.1.4      |
-| `@cdx-extensions/widget-template-web`     | 1.1.4      |
+| `@cdx-extensions/widget-template-web`     | 1.1.5      |
 
 ### Mobile (React Native packages)
 
@@ -195,9 +195,9 @@ npm run submit-to-fi -- \
 | `react-native`                            | 0.81.6               |
 | `expo`                                    | ~54.0.0 (optional)   |
 | `@cdx-extensions/di-sdk`                  | 1.1.4                |
-| `@cdx-extensions/di-sdk-mobile`           | 2.1.4                |
+| `@cdx-extensions/di-sdk-mobile`           | 2.1.6                |
 | `@cdx-extensions/di-sdk-types`            | 1.1.4                |
-| `@cdx-extensions/widget-template-mobile`  | 1.1.6                |
+| `@cdx-extensions/widget-template-mobile`  | 1.1.8                |
 | `axios`                                   | 1.15.0               |
 | `axios-mock-adapter`                      | ^2.1.0               |
 

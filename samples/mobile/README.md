@@ -160,7 +160,7 @@ nx generate @cdx-extensions/widget-template-mobile:widget --fiId=<fi-id> --name=
 | Option | Required | Description |
 |--------|----------|-------------|
 | `--fiId` | Yes | Your FI id. Used as the package scope — generated package name is `@<fiId>-extensions/<name>`. |
-| `--name` | Yes | Feature or widget name (e.g. `account-summary`). Used as the Nx project name and folder name. |
+| `--name` | Yes | Feature or widget name (e.g. `my-widget`). Used as the Nx project name and folder name. |
 
 ### Examples
 
@@ -183,7 +183,7 @@ npx nx start mobile-sandbox
 
 The generator template’s **`package.json`** may pin older **peer** versions than this monorepo (or omit `@cdx-extensions/di-sdk-types`). Before you treat the new package as done:
 
-1. Open the generated `**package.json`** under `features/mobile/<name>/` or `widgets/mobile/<name>/`.
+1. Open the generated `**package.json`** under `samples/mobile/feature/<name>/` or `samples/mobile/widgets/<name>/`.
 2. In `**peerDependencies`**, set `**@cdx-extensions/di-sdk**` and `**@cdx-extensions/di-sdk-types**` to the exact versions in **[Shared dependencies](../../README.md#shared-dependencies)** (mobile table in the repository root README). Add `**@cdx-extensions/di-sdk-types`** if it is missing.
 3. Run `**npm install`** again from the **repository root** so the workspace resolves the same versions as the sandbox and other samples.
 

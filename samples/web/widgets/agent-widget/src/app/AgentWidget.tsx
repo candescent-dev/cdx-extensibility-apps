@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { ThemeProvider, CssBaseline, useTheme } from '@mui/material';
 import { createTheme, type Theme } from '@mui/material/styles';
 import { PlatformSDK } from '@cdx-extensions/di-sdk';
-import { ChatInterface } from './components/components1/ChatInterface';
+import { ChatInterface } from './components/chat/ChatInterface';
 import { agentService } from './components/services/agentService';
 import { defaultBranding, type BrandingConfig } from './components/types/branding';
 

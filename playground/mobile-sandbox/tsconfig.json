@@ -12,9 +12,23 @@
       ]
     },
     "jsx": "react-jsx",
-    "lib": ["es2020", "dom"],
-    "types": ["react", "react-native"]
+    "lib": [
+      "es2020",
+      "dom"
+    ],
+    "types": [
+      "react",
+      "react-native"
+    ]
   },
-  "include": ["App.tsx", "**/*.ts", "**/*.tsx", "**/*.d.ts"],
-  "exclude": ["../../samples/**", "**/node_modules/**"]
+  "include": [
+    "App.tsx",
+    "**/*.ts",
+    "**/*.tsx",
+    "**/*.d.ts"
+  ],
+  "exclude": [
+    "../../samples/**",
+    "**/node_modules/**"
+  ]
 }

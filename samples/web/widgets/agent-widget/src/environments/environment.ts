@@ -1,5 +1,5 @@
 // This file can be replaced during build by using the `fileReplacements` array.
-// When building for production, this file is replaced with `environment.prod.ts`.
+// Used for local development: npm run build -- agent-widget
 
 export const environment = {
   production: false,

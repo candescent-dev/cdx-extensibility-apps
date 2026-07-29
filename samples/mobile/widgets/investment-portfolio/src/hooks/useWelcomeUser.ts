@@ -14,7 +14,7 @@ export function useWelcomeUser(): WelcomeUserState {
   const isLoading = Boolean(userContextResult?.isLoading);
   const hasError = Boolean(userContextResult?.hasError ?? userContextResult?.error);
 
-  const userName: string | null = data?.fullName ?? data?.fullName ?? 'NA';
+  const userName: string | null = data?.fullName ?? data?.firstName ?? 'NA';
   const error: string | null = hasError ? 'Failed to fetch user data' : null;
 
   return { userName, isLoading, error };

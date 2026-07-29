@@ -11,8 +11,16 @@
  *   npx nx start   mobile-sandbox agent-chat            -> preview agent-chat
  *   npx nx ios     mobile-sandbox investment-portfolio  -> preview on iOS
  *   npx nx android mobile-sandbox investment-portfolio  -> preview on Android
+ *
+ * Android emulator / Expo Go:
+ *   Uses --localhost + adb reverse so the emulator can reach Metro (port 8083).
+ *   Set MOBILE_SANDBOX_USE_LAN=1 to use the LAN URL instead (physical device on Wi‑Fi).
  */
 import { spawn } from 'node:child_process';
+import {
+  METRO_PORT,
+  setupAndroidMetroPortForward,
+} from './setup-android-metro.mjs';
 
 const args = process.argv.slice(2);
 
@@ -35,7 +43,9 @@ if (!['start', 'ios', 'android'].includes(platform)) {
 }
 
 const target = args[0];
+const useLan = process.env.MOBILE_SANDBOX_USE_LAN === '1';
 const env = { ...process.env, CI: '0' };
+
 if (target) {
   env.EXPO_PUBLIC_PREVIEW_TARGET = target;
 } else {
@@ -43,11 +53,24 @@ if (target) {
   delete env.EXPO_PUBLIC_PREVIEW_TARGET;
 }
 
+if (!useLan) {
+  // Emulator-safe bundler URL; pair with adb reverse below.
+  env.REACT_NATIVE_PACKAGER_HOSTNAME = 'localhost';
+  if (setupAndroidMetroPortForward(METRO_PORT)) {
+    console.log(
+      `[mobile-sandbox] adb reverse tcp:${METRO_PORT} tcp:${METRO_PORT} (Android emulator → Metro)`
+    );
+  }
+}
+
 const npmArgs = ['run', platform, '--workspace=mobile-sandbox'];
 if (platform === 'start') {
   // Opt-in only: --offline skips api.expo.dev (helps corporate VPN) but prevents Expo Go
   // from being installed on emulators when you press `a` / `i`. Default stays online.
-  const expoFlags = ['--clear', '--port', '8083'];
+  const expoFlags = ['--clear', '--port', String(METRO_PORT)];
+  if (!useLan) {
+    expoFlags.unshift('--localhost');
+  }
   if (process.env.MOBILE_SANDBOX_EXPO_OFFLINE === '1') {
     expoFlags.unshift('--offline');
   }
