@@ -2,6 +2,48 @@
   "name": "@dbk-olb-platform/template",
   "$schema": "node_modules/nx/schemas/project-schema.json",
   "targets": {
+    "generate-mobile-extensions": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "node tools/scripts/run-generate-mobile.mjs generate",
+        "forwardAllArgs": true
+      }
+    },
+    "generate-mobile-widget": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "node tools/scripts/run-generate-mobile.mjs widget",
+        "forwardAllArgs": true
+      }
+    },
+    "generate-mobile-feature": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "node tools/scripts/run-generate-mobile.mjs feature",
+        "forwardAllArgs": true
+      }
+    },
+    "list-mobile-templates": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "node tools/scripts/run-generate-mobile.mjs list",
+        "forwardAllArgs": true
+      }
+    },
+    "list-mobile-widget-templates": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "node tools/scripts/run-generate-mobile.mjs list --extensionType=widget",
+        "forwardAllArgs": true
+      }
+    },
+    "list-mobile-feature-templates": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "node tools/scripts/run-generate-mobile.mjs list --extensionType=feature",
+        "forwardAllArgs": true
+      }
+    },
     "local-registry": {
       "executor": "@nx/js:verdaccio",
       "options": {

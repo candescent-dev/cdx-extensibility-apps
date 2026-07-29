@@ -8,7 +8,7 @@
     "build": {
       "executor": "@nx/webpack:webpack",
       "outputs": ["{options.outputPath}"],
-      "defaultConfiguration": "qal",
+      "defaultConfiguration": "development",
       "options": {
         "compiler": "babel",
         "outputPath": "dist/apps/investmentportfolio-widget",
@@ -36,7 +36,7 @@
           "fileReplacements": [
             {
               "replace": "samples/web/widgets/investmentportfolio-widget/src/environments/environment.ts",
-              "with": "samples/web/widgets/investmentportfolio-widget/src/environments/environment.prod.ts"
+              "with": "samples/web/widgets/investmentportfolio-widget/src/environments/environment.production.ts"
             }
           ],
           "optimization": true,
@@ -45,12 +45,26 @@
           "namedChunks": false,
           "extractLicenses": true,
           "vendorChunk": false
+        },
+        "sandbox": {
+          "fileReplacements": [
+            {
+              "replace": "samples/web/widgets/investmentportfolio-widget/src/environments/environment.ts",
+              "with": "samples/web/widgets/investmentportfolio-widget/src/environments/environment.sandbox.ts"
+            }
+          ],
+          "optimization": true,
+          "outputHashing": "all",
+          "sourceMap": true,
+          "namedChunks": true,
+          "extractLicenses": false,
+          "vendorChunk": true
         },
         "stage": {
           "fileReplacements": [
             {
               "replace": "samples/web/widgets/investmentportfolio-widget/src/environments/environment.ts",
-              "with": "samples/web/widgets/investmentportfolio-widget/src/environments/environment.prod.ts"
+              "with": "samples/web/widgets/investmentportfolio-widget/src/environments/environment.stage.ts"
             }
           ],
           "optimization": true,
@@ -59,48 +73,6 @@
           "namedChunks": false,
           "extractLicenses": true,
           "vendorChunk": false
-        },
-        "demo": {
-          "fileReplacements": [
-            {
-              "replace": "samples/web/widgets/investmentportfolio-widget/src/environments/environment.ts",
-              "with": "samples/web/widgets/investmentportfolio-widget/src/environments/environment.prod.ts"
-            }
-          ],
-          "optimization": true,
-          "outputHashing": "all",
-          "sourceMap": false,
-          "namedChunks": false,
-          "extractLicenses": false,
-          "vendorChunk": false
-        },
-        "preprod": {
-          "fileReplacements": [
-            {
-              "replace": "samples/web/widgets/investmentportfolio-widget/src/environments/environment.ts",
-              "with": "samples/web/widgets/investmentportfolio-widget/src/environments/environment.qal.ts"
-            }
-          ],
-          "optimization": true,
-          "outputHashing": "all",
-          "sourceMap": true,
-          "namedChunks": true,
-          "extractLicenses": false,
-          "vendorChunk": true
-        },
-        "qal": {
-          "fileReplacements": [
-            {
-              "replace": "samples/web/widgets/investmentportfolio-widget/src/environments/environment.ts",
-              "with": "samples/web/widgets/investmentportfolio-widget/src/environments/environment.qal.ts"
-            }
-          ],
-          "optimization": true,
-          "outputHashing": "all",
-          "sourceMap": true,
-          "namedChunks": true,
-          "extractLicenses": false,
-          "vendorChunk": true
         }
       }
     },

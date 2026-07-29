@@ -11,7 +11,9 @@ config.transformer = {
   ...config.transformer,
   babelTransformerPath: require.resolve('react-native-svg-transformer/expo'),
 };
-config.resolver.assetExts = config.resolver.assetExts.filter((ext) => ext !== 'svg');
+config.resolver.assetExts = config.resolver.assetExts.filter(
+  (ext) => ext !== 'svg'
+);
 config.resolver.sourceExts = [...config.resolver.sourceExts, 'svg'];
 
 // Make Metro aware of the monorepo/workspace.

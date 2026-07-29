@@ -13,8 +13,6 @@
  * If open PR(s) exist for feature/add-<project>* branches, updates the selected PR
  * (prompts when multiple match). Otherwise creates a new branch and opens a new PR.
  *
- * When the project includes metadata.json, its contents are added to the PR description.
- *
  * Run from repository root:
  *   node tools/scripts/submit-to-fi-repo.js
  */
@@ -340,42 +338,8 @@ async function copyDir(src, dest) {
   }
 }
 
-function metadataPathForSource(source) {
-  if (source.isFile) {
-    return null;
-  }
-  return path.join(source.rel, 'metadata.json');
-}
-
-async function readProjectMetadata(source) {
-  const rel = metadataPathForSource(source);
-  if (!rel) {
-    return null;
-  }
-
-  assertWithinRoot(rel);
-  const abs = path.join(ROOT, rel);
-  if (!(await exists(abs))) {
-    return null;
-  }
-
-  const raw = await fsp.readFile(abs, 'utf8');
-  try {
-    return JSON.stringify(JSON.parse(raw), null, 2);
-  } catch {
-    throw new Error(`Invalid JSON in ${rel}`);
-  }
-}
-
-async function buildPrDescription(source) {
-  const lines = ['Submitted from CDX extensibility template.'];
-  const metadata = await readProjectMetadata(source);
-
-  if (metadata) {
-    lines.push('', '## Metadata', '', '```json', metadata, '```');
-  }
-
-  return lines.join('\n');
+async function buildPrDescription() {
+  return 'Submitted from CDX extensibility template.';
 }
 
 function isTracked(repoPath, rel) {
@@ -577,7 +541,7 @@ async function main() {
         );
       }
 
-      const prDescription = await buildPrDescription(source);
+      const prDescription = await buildPrDescription();
 
       if (isUpdate) {
         runProcess(

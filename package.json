@@ -9,8 +9,8 @@
       "samples/mobile/*",
       "samples/mobile/widgets/*",
       "samples/mobile/feature/*",
-      "features/mobile/*",
-      "widgets/mobile/*"
+      "widgets/mobile/*",
+      "features/mobile/*"
     ],
     "// nohoist": "Packages listed below are not hoisted to root. They stay in each workspace's node_modules so Metro (mobile) can resolve them from playground/mobile-sandbox. Web/Nx continue to use root node_modules.",
     "nohoist": [
@@ -32,21 +32,27 @@
   },
   "scripts": {
     "postinstall": "node tools/scripts/patch-mui-esm.js",
+    "build": "nx build",
+    "build:sandbox": "nx build --configuration=sandbox",
+    "build:stage": "nx build --configuration=stage",
+    "build:production": "nx build --configuration=production",
     "submit-to-fi": "node tools/scripts/submit-to-fi-repo.js"
   },
   "dependencies": {
     "@cdx-extensions/di-sdk": "1.1.4",
-    "@cdx-extensions/di-sdk-mobile": "2.1.5",
+    "@cdx-extensions/di-sdk-mobile": "2.1.6",
     "@cdx-extensions/di-sdk-types": "1.1.4",
     "@cdx-extensions/di-sdk-web": "2.1.4",
-    "@cdx-extensions/widget-template-mobile": "1.1.6",
-    "@cdx-extensions/widget-template-web": "1.1.4",
+    "@cdx-extensions/extension-generator-mobile": "1.1.0",
+    "@cdx-extensions/extension-generator-web": "1.1.0",
+    "@cdx-extensions/widget-template-mobile": "1.1.8",
+    "@cdx-extensions/widget-template-web": "1.1.5",
     "@emotion/react": "11.11.1",
     "@emotion/styled": "11.11.0",
     "@mui/icons-material": "7.3.4",
     "@mui/material": "7.3.4",
     "@mui/system": "7.3.3",
-    "axios": "1.15.0",
+    "axios": "1.16.0",
     "cache": "^3.0.0",
     "clear": "^0.1.0",
     "react": "18.2.0",
@@ -110,11 +116,13 @@
     "node-forge": ">=1.4.0",
     "picomatch": ">=2.3.2 <3.0.0 || >=3.0.2 <4.0.0 || >=4.0.4",
     "brace-expansion": ">=1.1.13 <2.0.0 || >=2.0.3 <3.0.0",
+    "shell-quote": ">=1.8.4",
+    "tar": "7.5.21",
     "@expo/cli": {
-      "tar": "7.5.13"
+      "tar": "7.5.21"
     },
     "cacache": {
-      "tar": "7.5.13"
+      "tar": "7.5.21"
     },
     "follow-redirects": "1.15.6",
     "ejs": "3.1.10",
@@ -124,9 +132,12 @@
     "lodash-es": "4.18.1",
     "minimatch": "9.0.9",
     "test-exclude": "7.0.2",
-    "koa": "3.1.2"
+    "koa": "3.1.2",
+    "websocket-driver": "0.7.5"
   },
   "resolutions": {
+    "shell-quote": ">=1.8.4",
+    "tar": "7.5.21",
     "follow-redirects": "1.15.6",
     "ejs": "3.1.10",
     "webpack": "5.88.0",
@@ -135,9 +146,31 @@
     "lodash-es": "4.18.1",
     "minimatch": "9.0.9",
     "test-exclude": "7.0.2",
-    "koa": "3.1.2"
+    "koa": "3.1.2",
+    "websocket-driver": "0.7.5"
   },
   "nx": {
-    "targets": {}
+    "targets": {
+      "generate-web-extensions": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "nx g @cdx-extensions/extension-generator-web:extensions-from-template",
+          "forwardAllArgs": true
+        }
+      },
+      "generate-web-widget": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "nx g @cdx-extensions/extension-generator-web:widget",
+          "forwardAllArgs": true
+        }
+      },
+      "list-web-widget-templates": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "node node_modules/@cdx-extensions/extension-generator-web/dist/scripts/list-web-widget-templates.js"
+        }
+      }
+    }
   }
 }

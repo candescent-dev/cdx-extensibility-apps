@@ -1,0 +1,16 @@
+ignore:
+  # Path helpers intentionally wrap fs APIs after canonicalization + root confinement (CWE-22 mitigations).
+  # Wiz SAST still flags the underlying fs/path calls; keep findings excepted at the helper modules.
+  global_paths:
+    /templates/mobile/tools/lib/path-safety.mjs:
+      reason: Validated filesystem boundary; paths are canonicalized and confined to an allowed root before every fs operation.
+    /templates/web/tools/lib/safePath.js:
+      reason: Validated filesystem boundary; paths are canonicalized and confined to an allowed root before every fs operation.
+    templates/mobile/tools/lib/path-safety.mjs:
+      reason: Validated filesystem boundary; paths are canonicalized and confined to an allowed root before every fs operation.
+    templates/web/tools/lib/safePath.js:
+      reason: Validated filesystem boundary; paths are canonicalized and confined to an allowed root before every fs operation.
+    /templates/web/dev/widget/investmentportfolio/src/__mocks__/investmentMock.json:
+      reason: Synthetic FI demo fixture with fictional prices for local widget development; not production confidential data.
+    templates/web/dev/widget/investmentportfolio/src/__mocks__/investmentMock.json:
+      reason: Synthetic FI demo fixture with fictional prices for local widget development; not production confidential data.

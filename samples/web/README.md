@@ -77,12 +77,21 @@ See [Changing the local port](#changing-the-local-port) if you need to run widge
 ### 2. Build a widget
 
 ```bash
-nx build agent-widget --configuration=production
-nx build qa-automation-widget --configuration=production
-nx build investmentportfolio-widget --configuration=production
+# Build for a specific environment (replace <widget-name> with the widget you want to build)
+npm run build -- <widget-name>                    # local (development)
+npm run build:sandbox -- <widget-name>            # sandbox
+npm run build:stage -- <widget-name>              # stage
+npm run build:production -- <widget-name>         # production
 ```
 
-**Available configurations:** `production`, `stage`, `qal`, `preprod`, `demo`, `development`.
+**Examples:**
+```bash
+npm run build:sandbox -- agent-widget
+npm run build:stage -- qa-automation-widget
+npm run build:production -- investmentportfolio-widget
+```
+
+**Available configurations:** `development` (default/local), `sandbox`, `stage`, `production`.
 
 Build output is written to `dist/apps/<widget-name>/` (unchanged for CI; widget source lives under `widgets/web/`).
 
@@ -123,8 +132,10 @@ widgets/web/<your-widget>/
 | File / Folder | Can you edit? | Notes |
 |---------------|---------------|-------|
 | `src/app/` | ✅ Yes — freely | All your widget UI and business logic goes here |
-| `src/environments/environment.ts` | ✅ Yes | Set apiUrl and feature flags for local dev |
-| `src/environments/environment.prod.ts` | ✅ Yes | Set apiUrl and feature flags for production |
+| `src/environments/environment.ts` | ✅ Yes | Set `apiUrl` and feature flags for local development |
+| `src/environments/environment.sandbox.ts` | ✅ Yes | Set `apiUrl` and feature flags for sandbox builds |
+| `src/environments/environment.stage.ts` | ✅ Yes | Set `apiUrl` and feature flags for stage builds |
+| `src/environments/environment.production.ts` | ✅ Yes | Set `apiUrl` and feature flags for production builds |
 | `src/assets/` | ✅ Yes | Add images, fonts, static files |
 | `module-federation.config.ts` | ⚠️ Partially | Only change `name` (widget's remote name) and `exposes` (component path). Do not change anything else. |
 | `project.json` | ⚠️ Partially | Only change port under `serve` and `serve-static` if needed. Do not remove or rename targets. |
@@ -320,7 +331,7 @@ Example — changing `agent-widget` to port `4103`:
 Nx automatically caches `build`, `test`, and `lint` results on your local disk. If the inputs to a task haven't changed, Nx replays the cached output instantly — no configuration needed.
 
 ```bash
-nx build agent-widget        # replays from cache if nothing changed
+npm run build -- agent-widget        # replays from cache if nothing changed
 ```
 
 **Skip the cache for a single run:**

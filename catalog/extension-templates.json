@@ -1,0 +1,115 @@
+{
+  "version": "1.0.0",
+  "mobile": {
+    "templates": [
+      {
+        "id": "agent-chat",
+        "name": "Agent Chat",
+        "description": "Bring-your-own-agent full-screen chat feature.",
+        "category": "interactive",
+        "type": "feature",
+        "source": {
+          "type": "npm",
+          "package": "@cdx-extensions/extension-template-mobile-agent-chat",
+          "version": "1.1.0"
+        },
+        "minGeneratorVersion": "1.0.0"
+      },
+      {
+        "id": "credit-score",
+        "name": "Credit Score",
+        "description": "Financial widget with score gauge, factor breakdown, and history.",
+        "category": "data-chart",
+        "type": "widget",
+        "source": {
+          "type": "npm",
+          "package": "@cdx-extensions/extension-template-mobile-credit-score",
+          "version": "1.1.0"
+        },
+        "minGeneratorVersion": "1.0.0"
+      },
+      {
+        "id": "investment-portfolio",
+        "name": "Investment Portfolio",
+        "description": "Financial widget with donut chart, portfolio legend, and SDK branding hooks.",
+        "category": "data-chart",
+        "type": "widget",
+        "source": {
+          "type": "npm",
+          "package": "@cdx-extensions/extension-template-mobile-investment-portfolio",
+          "version": "1.1.0"
+        },
+        "minGeneratorVersion": "1.0.0"
+      },
+      {
+        "id": "sdk-integration-demo",
+        "name": "SDK Integration Demo",
+        "description": "Full-screen demo of PlatformSDK user context, branding, and HTTP client.",
+        "category": "sdk-integration-demo",
+        "type": "feature",
+        "source": {
+          "type": "npm",
+          "package": "@cdx-extensions/extension-template-mobile-sdk-integration-demo",
+          "version": "1.1.0"
+        },
+        "minGeneratorVersion": "1.0.0"
+      }
+    ]
+  },
+  "web": {
+    "templates": [
+      {
+        "id": "agent",
+        "name": "Agent",
+        "description": "CDX web widget template (agent).",
+        "category": "Interactive",
+        "type": "widget",
+        "source": {
+          "type": "npm",
+          "package": "@cdx-extensions/extension-template-web-agent",
+          "version": "1.1.0"
+        },
+        "minGeneratorVersion": "2.0.0"
+      },
+      {
+        "id": "credit-score",
+        "name": "Credit Score",
+        "description": "CDX web widget template (credit-score).",
+        "category": "Data Chart",
+        "type": "widget",
+        "source": {
+          "type": "npm",
+          "package": "@cdx-extensions/extension-template-web-credit-score",
+          "version": "1.1.0"
+        },
+        "minGeneratorVersion": "1.0.0"
+      },
+      {
+        "id": "qa-automation",
+        "name": "Qa Automation",
+        "description": "CDX web widget template (qa-automation).",
+        "category": "SDK-integration-demo",
+        "type": "widget",
+        "source": {
+          "type": "npm",
+          "package": "@cdx-extensions/extension-template-web-qa-automation",
+          "version": "1.1.0"
+        },
+        "minGeneratorVersion": "1.0.0"
+      },
+      {
+        "id": "investmentportfolio",
+        "name": "Investmentportfolio",
+        "description": "CDX web widget template (investmentportfolio).",
+        "category": "Data Chart",
+        "type": "widget",
+        "source": {
+          "type": "npm",
+          "package": "@cdx-extensions/extension-template-web-investmentportfolio",
+          "version": "1.1.0"
+        },
+        "minGeneratorVersion": "1.0.0"
+      }
+    ]
+  }
+}
