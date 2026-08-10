@@ -52,7 +52,7 @@
     "@mui/icons-material": "7.3.4",
     "@mui/material": "7.3.4",
     "@mui/system": "7.3.3",
-    "axios": "1.16.0",
+    "axios": "1.18.0",
     "cache": "^3.0.0",
     "clear": "^0.1.0",
     "react": "18.2.0",
