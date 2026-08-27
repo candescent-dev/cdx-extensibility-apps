@@ -433,7 +433,7 @@ async function main() {
       ));
 
     const project =
-      cli.project || (await ask(rl, 'Feature / widget / aspect name'));
+      cli.project || (await ask(rl, 'Feature / Widget name'));
     if (!project) throw new Error('Feature name is required.');
     assertSafePathSegment(project);
 

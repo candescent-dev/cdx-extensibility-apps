@@ -283,53 +283,57 @@ export function ChatInterface({
     topContentHeightRef.current = height;
   }, []);
 
-  const handleSendMessage = useCallback(async () => {
-    if (!inputValue.trim() || status === 'thinking') return;
-    const userMessageText = inputValue.trim();
-    setInputValue('');
-    setError(null);
-    setStatus('thinking');
+  const handleSendMessage = useCallback(() => {
+    void (async () => {
+      if (!inputValue.trim() || status === 'thinking') return;
+      const userMessageText = inputValue.trim();
+      setInputValue('');
+      setError(null);
+      setStatus('thinking');
 
-    const userMessage: Message = {
-      id: `temp_${Date.now()}`,
-      role: 'user',
-      content: userMessageText,
-      timestamp: new Date(),
-    };
-    setMessages((prev) => [...prev, userMessage]);
-
-    try {
-      const agentMessage = await agentService.sendMessage(userMessageText);
-      setMessages((prev) => [...prev, agentMessage]);
-      setStatus('idle');
-    } catch (err: unknown) {
-      const e = err as AgentError;
-      setError(e);
-      setStatus('error');
-      const errorMessage: Message = {
-        id: `error_${Date.now()}`,
-        role: 'agent',
-        content: `Sorry, I encountered an error: ${e.message}`,
+      const userMessage: Message = {
+        id: `temp_${Date.now()}`,
+        role: 'user',
+        content: userMessageText,
         timestamp: new Date(),
       };
-      setMessages((prev) => [...prev, errorMessage]);
-    }
+      setMessages((prev) => [...prev, userMessage]);
+
+      try {
+        const agentMessage = await agentService.sendMessage(userMessageText);
+        setMessages((prev) => [...prev, agentMessage]);
+        setStatus('idle');
+      } catch (err: unknown) {
+        const e = err as AgentError;
+        setError(e);
+        setStatus('error');
+        const errorMessage: Message = {
+          id: `error_${Date.now()}`,
+          role: 'agent',
+          content: `Sorry, I encountered an error: ${e.message}`,
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, errorMessage]);
+      }
+    })();
   }, [inputValue, status]);
 
-  const handleRetry = useCallback(async () => {
-    setError(null);
-    setStatus('thinking');
-    try {
-      const agentMessage = await agentService.retryLastMessage();
-      setMessages((prev) => {
-        const filtered = prev.filter((msg) => !msg.id.startsWith('error_'));
-        return [...filtered, agentMessage];
-      });
-      setStatus('idle');
-    } catch (err: unknown) {
-      setError(err as AgentError);
-      setStatus('error');
-    }
+  const handleRetry = useCallback(() => {
+    void (async () => {
+      setError(null);
+      setStatus('thinking');
+      try {
+        const agentMessage = await agentService.retryLastMessage();
+        setMessages((prev) => {
+          const filtered = prev.filter((msg) => !msg.id.startsWith('error_'));
+          return [...filtered, agentMessage];
+        });
+        setStatus('idle');
+      } catch (err: unknown) {
+        setError(err as AgentError);
+        setStatus('error');
+      }
+    })();
   }, []);
 
   const handleClearChat = useCallback(() => {

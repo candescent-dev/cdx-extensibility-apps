@@ -178,14 +178,14 @@ npm run submit-to-fi -- \
 | `@mui/icons-material`                     | 7.3.4      |
 | `@mui/material`                           | 7.3.4      |
 | `@mui/system`                             | 7.3.3      |
-| `axios`                                   | 1.16.0     |
+| `axios`                                   | 1.19.0     |
 | `react`                                   | 18.2.0     |
 | `react-dom`                               | 18.2.0     |
 | `react-router-dom`                        | ^6.12.1    |
 | `@cdx-extensions/di-sdk`                  | 1.1.4      |
-| `@cdx-extensions/di-sdk-web`              | 2.1.4      |
+| `@cdx-extensions/di-sdk-web`              | 2.1.6      |
 | `@cdx-extensions/di-sdk-types`            | 1.1.4      |
-| `@cdx-extensions/widget-template-web`     | 1.1.5      |
+| `@cdx-extensions/widget-template-web`     | 1.1.6      |
 
 ### Mobile (React Native packages)
 
@@ -195,10 +195,10 @@ npm run submit-to-fi -- \
 | `react-native`                            | 0.81.6               |
 | `expo`                                    | ~54.0.0 (optional)   |
 | `@cdx-extensions/di-sdk`                  | 1.1.4                |
-| `@cdx-extensions/di-sdk-mobile`           | 2.1.6                |
+| `@cdx-extensions/di-sdk-mobile`           | 2.1.7                |
 | `@cdx-extensions/di-sdk-types`            | 1.1.4                |
-| `@cdx-extensions/widget-template-mobile`  | 1.1.8                |
-| `axios`                                   | 1.15.0               |
+| `@cdx-extensions/widget-template-mobile`  | 1.1.10               |
+| `axios`                                   | 1.19.0               |
 | `axios-mock-adapter`                      | ^2.1.0               |
 
 > **⚠️ WARNING: Do not add dependencies without approval**

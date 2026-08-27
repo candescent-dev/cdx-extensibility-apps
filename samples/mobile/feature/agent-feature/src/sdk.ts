@@ -336,7 +336,9 @@ export const httpClient: HttpClient = {
       const conversationHistory = body?.conversationHistory || [];
       const userContext = body?.userContext;
 
-      await new Promise((r) => setTimeout(r, 800 + Math.random() * 600));
+      await new Promise<void>((resolve) => {
+        setTimeout(resolve, 800 + Math.random() * 600);
+      });
 
       if (Math.random() < 0.05) {
         throw Object.assign(new Error('Agent service temporarily unavailable'), {
