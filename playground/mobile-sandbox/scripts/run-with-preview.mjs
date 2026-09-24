@@ -7,21 +7,24 @@
  *   node run-with-preview.mjs --platform=<start|ios|android> [previewTargetId]
  *
  * Examples:
- *   npx nx start   mobile-sandbox                       -> full sandbox
- *   npx nx start   mobile-sandbox agent-chat            -> preview agent-chat
- *   npx nx ios     mobile-sandbox investment-portfolio  -> preview on iOS
- *   npx nx android mobile-sandbox investment-portfolio  -> preview on Android
+ *   pnpm exec nx start   mobile-sandbox                       -> full sandbox
+ *   pnpm exec nx start   mobile-sandbox agent-chat            -> preview agent-chat
+ *   pnpm exec nx ios     mobile-sandbox investment-portfolio  -> preview on iOS
+ *   pnpm exec nx android mobile-sandbox investment-portfolio  -> preview on Android
  *
  * Android emulator / Expo Go:
  *   Uses --localhost + adb reverse so the emulator can reach Metro (port 8083).
  *   Set MOBILE_SANDBOX_USE_LAN=1 to use the LAN URL instead (physical device on Wi‑Fi).
  */
 import { spawn } from 'node:child_process';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import {
   METRO_PORT,
   setupAndroidMetroPortForward,
 } from './setup-android-metro.mjs';
 
+const sandboxRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const args = process.argv.slice(2);
 
 let platform = 'start';
@@ -63,7 +66,7 @@ if (!useLan) {
   }
 }
 
-const npmArgs = ['run', platform, '--workspace=mobile-sandbox'];
+const pnpmArgs = ['run', platform];
 if (platform === 'start') {
   // Opt-in only: --offline skips api.expo.dev (helps corporate VPN) but prevents Expo Go
   // from being installed on emulators when you press `a` / `i`. Default stays online.
@@ -74,8 +77,13 @@ if (platform === 'start') {
   if (process.env.MOBILE_SANDBOX_EXPO_OFFLINE === '1') {
     expoFlags.unshift('--offline');
   }
-  npmArgs.push('--', ...expoFlags);
+  pnpmArgs.push('--', ...expoFlags);
 }
 
-const child = spawn('npm', npmArgs, { stdio: 'inherit', env, shell: true });
+const pnpmBin = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
+const child = spawn(pnpmBin, pnpmArgs, {
+  stdio: 'inherit',
+  env,
+  cwd: sandboxRoot,
+});
 child.on('exit', (code) => process.exit(code ?? 0));

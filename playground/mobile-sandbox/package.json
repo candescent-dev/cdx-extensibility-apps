@@ -11,8 +11,8 @@
   "dependencies": {
     "@cdx-extensions-examples/agent-feature": "file:../../samples/mobile/feature/agent-feature",
     "@cdx-extensions-examples/investment-portfolio": "file:../../samples/mobile/widgets/investment-portfolio",
-    "@cdx-extensions/di-sdk": "1.1.4",
-    "@cdx-extensions/di-sdk-mobile": "2.1.7",
+    "@cdx-extensions/di-sdk": "1.1.7",
+    "@cdx-extensions/di-sdk-mobile": "2.1.9",
     "@expo/vector-icons": "^15.0.3",
     "@react-navigation/bottom-tabs": "^7.3.10",
     "@react-navigation/native": "^7.1.6",
@@ -32,5 +32,13 @@
     "@babel/core": "^7.20.0",
     "react-native-svg-transformer": "^1.5.3",
     "typescript": "^5.5.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "axios": "1.19.0",
+      "image-size": "2.0.2",
+      "metro>image-size": "1.2.1",
+      "postcss": "8.5.25"
+    }
   }
 }

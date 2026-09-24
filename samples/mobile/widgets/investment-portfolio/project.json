@@ -13,21 +13,21 @@
         "{workspaceRoot}/dist/packages/investment-portfolio"
       ],
       "options": {
-        "command": "npm run build && node ../../../../tools/scripts/stage-nx-package.js --projectRoot . --outDir ../../../../dist/packages/investment-portfolio --copy dist package.json README.md",
+        "command": "pnpm run build && node ../../../../tools/scripts/stage-nx-package.js --projectRoot . --outDir ../../../../dist/packages/investment-portfolio --copy dist package.json README.md",
         "cwd": "samples/mobile/widgets/investment-portfolio"
       }
     },
     "dev": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "npm run dev",
+        "command": "pnpm run dev",
         "cwd": "samples/mobile/widgets/investment-portfolio"
       }
     },
     "typecheck": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "npm run typecheck",
+        "command": "pnpm run typecheck",
         "cwd": "samples/mobile/widgets/investment-portfolio"
       }
     }

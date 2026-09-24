@@ -1,0 +1,25 @@
+lockfileVersion: '9.0'
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
+importers:
+
+  .:
+    dependencies:
+      axios:
+        specifier: 1.19.0
+        version: 1.19.0
+      react:
+        specifier: 18.2.0
+        version: 18.2.0(react@18.2.0)
+      react-dom:
+        specifier: 18.2.0
+        version: 18.2.0(react@18.2.0)
+
+packages:
+
+  axios@1.19.0:
+    resolution: {integrity: sha512-example==}
+    engines: {node: '>= 0.10'}

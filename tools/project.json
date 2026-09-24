@@ -1,0 +1,17 @@
+{
+  "name": "mobile-generator-scripts",
+  "$schema": "../node_modules/nx/schemas/project-schema.json",
+  "root": "tools",
+  "sourceRoot": "tools/scripts",
+  "projectType": "library",
+  "targets": {
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/tools"],
+      "options": {
+        "jestConfig": "tools/jest.config.ts",
+        "passWithNoTests": false
+      }
+    }
+  }
+}

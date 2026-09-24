@@ -1,8 +1,36 @@
+const fs = require('fs');
 const path = require('path');
 const { getDefaultConfig } = require('expo/metro-config');
 
 const projectRoot = __dirname;
 const workspaceRoot = path.resolve(projectRoot, '../..');
+const projectNodeModules = path.join(projectRoot, 'node_modules');
+const workspaceNodeModules = path.join(workspaceRoot, 'node_modules');
+const pnpmNodeModules = path.join(projectNodeModules, '.pnpm', 'node_modules');
+
+function assertSafePackageName(name) {
+  if (typeof name !== 'string' || name.length === 0) {
+    throw new TypeError('Invalid package name');
+  }
+  if (name.includes('..') || path.isAbsolute(name) || name.includes('\0')) {
+    throw new Error(`Unsafe package name: ${name}`);
+  }
+}
+
+function resolvePackage(name) {
+  assertSafePackageName(name);
+  const candidates = [
+    path.join(projectNodeModules, name),
+    path.join(pnpmNodeModules, name),
+    path.join(workspaceNodeModules, name),
+  ];
+  for (const candidate of candidates) {
+    if (fs.existsSync(candidate)) {
+      return candidate;
+    }
+  }
+  return path.join(projectNodeModules, name);
+}
 
 const config = getDefaultConfig(projectRoot);
 
@@ -19,8 +47,9 @@ config.resolver.sourceExts = [...config.resolver.sourceExts, 'svg'];
 // Make Metro aware of the monorepo/workspace.
 config.watchFolders = [workspaceRoot];
 config.resolver.nodeModulesPaths = [
-  path.resolve(projectRoot, 'node_modules'),
-  path.resolve(workspaceRoot, 'node_modules'),
+  projectNodeModules,
+  pnpmNodeModules,
+  workspaceNodeModules,
 ];
 config.resolver.disableHierarchicalLookup = true;
 
@@ -30,8 +59,7 @@ config.resolver.extraNodeModules = new Proxy(
   {},
   {
     get: (_, name) => {
-      // Explicit mapping for our local publishable library (works even if a stale
-      // workspace symlink exists after moving folders).
+      assertSafePackageName(name);
       if (name === '@cdx-extensions-examples/agent-feature') {
         return path.join(
           workspaceRoot,
@@ -41,20 +69,29 @@ config.resolver.extraNodeModules = new Proxy(
           'agent-feature'
         );
       }
-      // @react-native/virtualized-lists is nested inside react-native/node_modules;
-      // Metro with disableHierarchicalLookup cannot resolve it otherwise.
-      if (name === '@react-native/virtualized-lists') {
+      if (name === '@cdx-extensions-examples/investment-portfolio') {
         return path.join(
           workspaceRoot,
-          'node_modules',
+          'samples',
+          'mobile',
+          'widgets',
+          'investment-portfolio'
+        );
+      }
+      if (name === '@react-native/virtualized-lists') {
+        const nested = path.join(
+          projectNodeModules,
           'react-native',
           'node_modules',
           '@react-native',
           'virtualized-lists'
         );
+        if (fs.existsSync(nested)) {
+          return nested;
+        }
       }
 
-      return path.join(workspaceRoot, 'node_modules', name);
+      return resolvePackage(name);
     },
   }
 );

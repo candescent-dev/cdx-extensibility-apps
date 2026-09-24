@@ -1,14 +1,20 @@
 /**
  * Copy a widget, feature, or aspect into your FI extensions repo and open or update a PR.
  * Syncs source files, then validates mobile packages in the FI repo when applicable.
- * A PR is created or updated after sync (and mobile `npm install` when relevant).
+ * A PR is created or updated after sync (and mobile `pnpm install` when relevant).
  *
- * Validation (no `npm install` at FI repo root — avoids private-registry auth there):
- *   - mobile widget/feature: `npm install` in the synced folder only
+ * Validation (no `pnpm install` at FI repo root unless folder install did not
+ * update the workspace lockfile):
+ *   - mobile widget/feature: `pnpm install` in the synced folder, then root
+ *     `pnpm-lock.yaml` is staged when validation changes it (same as npm-era
+ *     `package-lock.json` behavior). When adding a new workspace package, root
+ *     `pnpm install` may run — ensure the FI clone has registry auth in its root
+ *     `.npmrc` (or `~/.npmrc`) for `@cdx-extensions/*` if private packages apply.
+ *     Root lockfile sync prefers `pnpm install --lockfile-only` before a full install.
  *   - web / aspect: no validation step
  *
  * Only the synced project path is committed (not `.nx/cache`, `dist`, etc.).
- * Root `package-lock.json` is staged only when mobile validation modified it.
+ * Root `pnpm-lock.yaml` is staged when mobile validation updates it.
  *
  * If open PR(s) exist for feature/add-<project>* branches, updates the selected PR
  * (prompts when multiple match). Otherwise creates a new branch and opens a new PR.
@@ -34,6 +40,11 @@ const PATHS = {
 };
 
 const EXCLUDE = new Set(['node_modules', 'dist', '.nx', 'coverage', '.expo']);
+const ROOT_LOCKFILE = 'pnpm-lock.yaml';
+
+function needsRootLockfileSync(type) {
+  return type === 'mobile-widget' || type === 'mobile-feature';
+}
 
 function parseArgs(argv) {
   const args = {};
@@ -47,9 +58,20 @@ function parseArgs(argv) {
   return args;
 }
 
+function stripSurroundingQuotes(value) {
+  const trimmed = value.trim();
+  if (
+    (trimmed.startsWith("'") && trimmed.endsWith("'")) ||
+    (trimmed.startsWith('"') && trimmed.endsWith('"'))
+  ) {
+    return trimmed.slice(1, -1).trim();
+  }
+  return trimmed;
+}
+
 async function ask(rl, question, defaultValue) {
   const hint = defaultValue ? ` [${defaultValue}]` : '';
-  const answer = (await rl.question(`${question}${hint}: `)).trim();
+  const answer = stripSurroundingQuotes(await rl.question(`${question}${hint}: `));
   return answer || defaultValue || '';
 }
 
@@ -62,10 +84,14 @@ async function exists(p) {
   }
 }
 
+function pnpmCommand() {
+  return process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
+}
+
 function runProcess(cmd, args, cwd) {
   console.log(`> ${cmd} ${args.join(' ')}`);
   const shell =
-    process.platform === 'win32' && (cmd === 'npm' || cmd === 'npx');
+    process.platform === 'win32' && (cmd === 'pnpm' || cmd === 'npx');
   const result = spawnSync(cmd, args, { cwd, stdio: 'inherit', shell });
   if (result.status !== 0) {
     throw new Error(`Command failed: ${cmd} ${args.join(' ')}`);
@@ -190,7 +216,10 @@ function repoName(url) {
 }
 
 function resolveUserPath(userPath) {
-  return path.isAbsolute(userPath) ? userPath : path.resolve(ROOT, userPath);
+  const normalized = stripSurroundingQuotes(userPath);
+  return path.isAbsolute(normalized)
+    ? normalized
+    : path.resolve(ROOT, normalized);
 }
 
 async function isGitRepo(dir) {
@@ -338,6 +367,24 @@ async function copyDir(src, dest) {
   }
 }
 
+async function countSyncableFiles(absPath, isFile) {
+  if (isFile) {
+    return (await exists(absPath)) ? 1 : 0;
+  }
+
+  let count = 0;
+  async function walk(dir) {
+    for (const entry of await fsp.readdir(dir, { withFileTypes: true })) {
+      if (EXCLUDE.has(entry.name)) continue;
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) await walk(full);
+      else count += 1;
+    }
+  }
+  await walk(absPath);
+  return count;
+}
+
 async function buildPrDescription() {
   return 'Submitted from CDX extensibility template.';
 }
@@ -358,10 +405,24 @@ function hasStagedChanges(repoPath) {
   return result.status === 1;
 }
 
-function stageSyncedFiles(repoPath, source, includeLockfile = false) {
+async function readRootLockfileSnapshot(repoPath) {
+  const lockfilePath = path.join(repoPath, ROOT_LOCKFILE);
+  if (!(await exists(lockfilePath))) return null;
+  return fsp.readFile(lockfilePath);
+}
+
+async function rootLockfileWasUpdated(repoPath, before) {
+  const lockfilePath = path.join(repoPath, ROOT_LOCKFILE);
+  if (!(await exists(lockfilePath))) return before !== null;
+  const after = await fsp.readFile(lockfilePath);
+  if (before === null) return true;
+  return !before.equals(after);
+}
+
+function stageSyncedFiles(repoPath, source, includeRootLockfile = false) {
   runProcess('git', ['add', source.rel], repoPath);
-  if (includeLockfile && isTracked(repoPath, 'package-lock.json')) {
-    runProcess('git', ['add', 'package-lock.json'], repoPath);
+  if (includeRootLockfile) {
+    runProcess('git', ['add', ROOT_LOCKFILE], repoPath);
   }
 }
 
@@ -377,13 +438,8 @@ function revertSyncedFiles(repoPath, source) {
 
 function revertValidationChanges(repoPath, source) {
   revertSyncedFiles(repoPath, source);
-
-  if (isTracked(repoPath, 'package-lock.json')) {
-    runProcess(
-      'git',
-      ['checkout', 'HEAD', '--', 'package-lock.json'],
-      repoPath,
-    );
+  if (isTracked(repoPath, ROOT_LOCKFILE)) {
+    runProcess('git', ['checkout', 'HEAD', '--', ROOT_LOCKFILE], repoPath);
   }
 }
 
@@ -401,15 +457,56 @@ async function validateFiRepoBuild(repoPath, source) {
   const projectDir = path.join(repoPath, source.rel);
   assertWithinRepo(repoPath, projectDir);
 
-  if (source.type === 'mobile-feature' || source.type === 'mobile-widget') {
-    // Folder install only — do not run `npm install` at FI root (private registry / JFrog).
-    runProcess('npm', ['install'], projectDir);
+  if (needsRootLockfileSync(source.type)) {
+    const hasLockfile = await exists(path.join(projectDir, 'pnpm-lock.yaml'));
+    const args = hasLockfile ? ['install', '--frozen-lockfile'] : ['install'];
+    runProcess(pnpmCommand(), args, projectDir);
     return;
   }
 
   console.log(
     `Skipping validation for ${source.type} (no FI-repo install/build step).`,
   );
+}
+
+async function ensureMobileRootLockfile(
+  repoPath,
+  lockfileBefore,
+  isNewWorkspacePackage,
+) {
+  let lockfileUpdated = await rootLockfileWasUpdated(repoPath, lockfileBefore);
+
+  if (!lockfileUpdated && isNewWorkspacePackage) {
+    console.log(
+      '\nRoot lockfile unchanged after folder install — trying pnpm install --lockfile-only at FI repo root...\n',
+    );
+    runProcess(pnpmCommand(), ['install', '--lockfile-only'], repoPath);
+    lockfileUpdated = await rootLockfileWasUpdated(repoPath, lockfileBefore);
+  }
+
+  if (!lockfileUpdated && isNewWorkspacePackage) {
+    console.log(
+      '\nLockfile-only did not update root lockfile — running full pnpm install at FI repo root...\n',
+    );
+    runProcess(pnpmCommand(), ['install'], repoPath);
+    lockfileUpdated = await rootLockfileWasUpdated(repoPath, lockfileBefore);
+  }
+
+  if (!lockfileUpdated && isNewWorkspacePackage) {
+    throw new Error(
+      `FI repo root ${ROOT_LOCKFILE} was not updated after install.\n` +
+        'Ensure the synced package.json is valid and registry auth is configured in the FI clone.',
+    );
+  }
+
+  if (lockfileUpdated) {
+    console.log(
+      '\nVerifying root lockfile with pnpm install --frozen-lockfile...\n',
+    );
+    runProcess(pnpmCommand(), ['install', '--frozen-lockfile'], repoPath);
+  }
+
+  return lockfileUpdated;
 }
 
 async function main() {
@@ -446,6 +543,17 @@ async function main() {
     const { type } = source;
     console.log(`Detected type: ${type}`);
 
+    const sourceFileCount = await countSyncableFiles(
+      path.join(ROOT, source.rel),
+      source.isFile,
+    );
+    if (sourceFileCount === 0) {
+      throw new Error(
+        `Source "${source.rel}" has no files to submit (only empty folders or excluded paths).\n` +
+          'Generate or add widget/feature files before running submit-to-fi.',
+      );
+    }
+
     const localPath = await resolveLocalRepo(target, localInput);
     verifyRemoteUrl(localPath, target);
 
@@ -477,6 +585,13 @@ async function main() {
     const srcAbs = path.join(ROOT, source.rel);
     const destAbs = path.join(localPath, source.rel);
     assertWithinRepo(localPath, destAbs);
+
+    const syncRootLockfile = needsRootLockfileSync(source.type);
+    const isNewWorkspacePackage =
+      syncRootLockfile && !isTracked(localPath, source.rel);
+    const lockfileBefore = syncRootLockfile
+      ? await readRootLockfileSnapshot(localPath)
+      : null;
 
     let syncStarted = false;
     let synced = false;
@@ -511,22 +626,17 @@ async function main() {
       }
       synced = true;
 
-      const lockfilePath = path.join(localPath, 'package-lock.json');
-      const lockfileBefore =
-        (await exists(lockfilePath)) && (await fsp.readFile(lockfilePath));
-
       await validateFiRepoBuild(localPath, source);
+      const lockfileUpdated = syncRootLockfile
+        ? await ensureMobileRootLockfile(
+            localPath,
+            lockfileBefore,
+            isNewWorkspacePackage,
+          )
+        : false;
       validated = true;
 
-      let lockfileUpdatedByValidation = false;
-      if (lockfileBefore) {
-        const lockfileAfter = await fsp.readFile(lockfilePath);
-        lockfileUpdatedByValidation = !lockfileBefore.equals(lockfileAfter);
-      } else if (await exists(lockfilePath)) {
-        lockfileUpdatedByValidation = true;
-      }
-
-      stageSyncedFiles(localPath, source, lockfileUpdatedByValidation);
+      stageSyncedFiles(localPath, source, lockfileUpdated);
       const commitMessage = isUpdate
         ? `Update ${project} (${type})`
         : `Add ${project} (${type})`;
@@ -537,8 +647,17 @@ async function main() {
         pushed = true;
       } else {
         console.log(
-          '\nNo file changes to commit — skipping commit and push.\n',
+          '\nNo file changes to commit — FI repo already matches this source.\n',
         );
+        if (!isUpdate) {
+          runProcess('git', ['checkout', baseBranch], localPath);
+          runProcess('git', ['branch', '-D', branch], localPath);
+        }
+        console.log('Nothing to push — skipping PR create/update.\n');
+        process.removeListener('SIGINT', onInterrupt);
+        process.removeListener('SIGTERM', onInterrupt);
+        console.log('\nDone.');
+        return;
       }
 
       const prDescription = await buildPrDescription();

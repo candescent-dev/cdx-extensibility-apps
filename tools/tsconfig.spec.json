@@ -1,0 +1,18 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "../dist/out-tsc",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "allowJs": true,
+    "types": ["jest", "node"]
+  },
+  "include": [
+    "jest.config.ts",
+    "scripts/**/*.test.ts",
+    "scripts/**/*.mjs",
+    "../templates/mobile/tools/lib/**/*.test.ts",
+    "../templates/mobile/tools/lib/**/*.mjs"
+  ]
+}

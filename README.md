@@ -19,7 +19,14 @@ Reference monorepo for **Candescent Digital Experience (CDX) extensibility**.
 
 ---
 
-**Package manager:** This workspace uses **npm**. Use `npm install` from the repo root, unless a child README says otherwise.
+**Package manager:** This repo uses **pnpm** with **two install roots**:
+
+| Track | Where | Clean install | Refresh deps |
+|-------|--------|---------------|--------------|
+| **Web / Nx** | Repository root | `pnpm install --frozen-lockfile` | `pnpm install` |
+| **Mobile / Expo** | [`playground/mobile-sandbox`](playground/mobile-sandbox) | `pnpm run setup:mobile` (or `ci:mobile`) | `pnpm run sync:mobile` (or `install:mobile`) |
+
+Both `pnpm install --frozen-lockfile` and `pnpm install` work in each root. Prefer `pnpm install --frozen-lockfile` / `setup:mobile` for a clean checkout; use `sync:mobile` when changing sandbox dependencies (including after generate). Do **not** expect Expo/React Native under the repo-root `node_modules`.
 
 ---
 
@@ -30,12 +37,35 @@ Reference monorepo for **Candescent Digital Experience (CDX) extensibility**.
 ```bash
 git clone <repository-url>
 cd cdx-extensibility-apps
-npm install
+corepack enable   # one-time; ships with Node 18+
+pnpm run setup              # pnpm install --frozen-lockfile + setup:mobile (or: pnpm install --frozen-lockfile && pnpm run ci:mobile)
 ```
 
 **Then choose your platform:**
 - **Web widgets** → See [samples/web/README.md](samples/web/README.md)
 - **Mobile packages** → See [samples/mobile/README.md](samples/mobile/README.md)
+
+### Mobile dev loop
+
+**First-time (once per clone):**
+
+```bash
+pnpm install --frozen-lockfile
+pnpm run setup:mobile       # same as pnpm run ci:mobile
+```
+
+**Daily (catalog generate → build → start):**
+
+```bash
+pnpm exec nx run generate-mobile-extensions
+pnpm exec nx run generate-mobile-widget -- --fiId=0123 --template=credit-score --name=test-widget
+pnpm exec nx run generate-mobile-feature -- --template=agent-chat --fiId=0123 --name=my-feature
+
+pnpm exec nx start mobile-sandbox    # builds samples + wired generated packages; auto-syncs lockfile
+# press i (iOS) or a (Android) — web (w) is not supported
+```
+
+After generate, do **not** run `pnpm run ci:mobile` (lockfile will be out of sync). `pnpm exec nx start mobile-sandbox` syncs automatically, or run `pnpm run sync:mobile` manually.
 
 **Need details?** See [Getting started (step-by-step)](#getting-started-step-by-step) below.
 
@@ -69,17 +99,17 @@ Before installing, ensure you have the required tools:
 
 | Requirement | Version | Notes |
 |-------------|---------|-------|
-| **Node.js** | 18 LTS or 20 LTS | Required for all development |
-| **npm** | 9+ | Package manager for this workspace. Not every Node 18.x release bundles npm 9+; upgrade npm if `npm -v` is below 9 (for example `npm install -g npm@9`). |
-| **Nx** | (optional) | Can use `npx nx` instead of global install |
-| **GitHub CLI (`gh`)** | latest | Required for `npm run submit-to-fi` — list and create PRs in your FI repo |
+| **Node.js** | 18 or 20 LTS | See `engines` in root `package.json`. |
+| **pnpm** | 9+ | Package manager for this workspace (`packageManager` in root `package.json`). Enable with `corepack enable`. |
+| **Nx** | (optional) | Can use `pnpm exec nx` instead of global install |
+| **GitHub CLI (`gh`)** | latest | Required for `pnpm run submit-to-fi` — list and create PRs in your FI repo |
 
 **Install Node.js:** [https://nodejs.org/](https://nodejs.org/)
 
-Install Nx globally (optional; you can also use `npx nx`):
+Install Nx globally (optional; you can also use `pnpm exec nx`):
 
 ```bash
-npm install --global nx
+pnpm install --global nx
 ```
 
 ### 3. Configure `.npmrc`
@@ -89,9 +119,38 @@ Ensure your repo **`.npmrc`** does **not** contain secrets. Use the template fil
 
 ### 4. Install dependencies
 
+**Web / Nx (repository root):**
+
 ```bash
-npm install
+pnpm install --frozen-lockfile          # clean install from lockfile
+pnpm install     # when adding/changing root dependencies
 ```
+
+**Mobile / Expo** (separate install — skips Expo/RN on web-only machines):
+
+```bash
+# From repository root (no need to cd):
+pnpm run setup:mobile    # clean install (alias: ci:mobile)
+pnpm run sync:mobile     # after generate or sandbox dep changes (alias: install:mobile)
+
+# One-shot first-time setup (root + sandbox):
+pnpm run setup
+
+# Or from inside playground/mobile-sandbox:
+pnpm install --frozen-lockfile
+pnpm install
+```
+
+Do **not** use `ci:mobile` / `setup:mobile` right after generating a widget/feature — the sandbox lockfile will not include the new `file:` deps yet. Prefer `pnpm exec nx start mobile-sandbox` (auto-sync) or `pnpm run sync:mobile`.
+#### Windows cloud / VDI notes
+
+Expo/React Native installs write deep trees under `playground/mobile-sandbox/node_modules`. On Windows:
+
+1. Clone to a **short path without spaces** (for example `C:\src\cdx-apps`). Long paths like `C:\Users\...\Tools and SDK\...` often hit `MAX_PATH`.
+2. Enable Win32 long paths (`LongPathsEnabled=1`).
+3. Exclude the repo (or at least `node_modules`) from Microsoft Defender real-time scanning — otherwise installs can appear to hang.
+4. Use **Node 18 or 20 LTS** and **pnpm 9+** (see `engines` / `packageManager` in root `package.json`).
+5. If install still fails, capture logs with `pnpm install --frozen-lockfile --loglevel verbose` (look for `ENAMETOOLONG`, `EPERM`, network/TLS errors). See [DEVEX-6748](https://candescentco.atlassian.net/browse/DEVEX-6748).
 
 **Next steps:**
 - **Building web widgets?** → Continue to [samples/web/README.md](samples/web/README.md)
@@ -104,7 +163,7 @@ npm install
 After you build and test a widget, feature, or aspect in this repo, use the submit script to copy it into your **FI extensions repo** and open or update a GitHub PR there.
 
 ```bash
-npm run submit-to-fi
+pnpm run submit-to-fi
 ```
 
 Prompts for: FI repo Git URL, local clone path, and project name (widget, feature, or aspect).
@@ -116,8 +175,9 @@ This is a convenience wrapper around `node tools/scripts/submit-to-fi-repo.js` �
 1. **Finds the project** in this repo by name (web widget, mobile widget, mobile feature, or web aspect).
 2. **Clones or reuses** a local copy of your FI extensions repo.
 3. **Syncs source files** into the matching path in the FI repo (excludes `node_modules`, `dist`, `.nx`, `coverage`, `.expo`).
-4. **Commits and pushes** only the synced project path (not build artifacts or cache).
-5. **Creates or updates a PR** in the FI repo via `gh`.
+4. **Validates mobile packages** with `pnpm install` in the synced folder, updates root `pnpm-lock.yaml` when needed, and verifies with `pnpm install --frozen-lockfile` at the FI repo root.
+5. **Commits and pushes** the synced project path and root `pnpm-lock.yaml` when the lockfile changed (not build artifacts or cache).
+6. **Creates or updates a PR** in the FI repo via `gh`.
 
 If the project has a `metadata.json`, its contents are added to the PR description.
 
@@ -143,7 +203,7 @@ If the same name exists in more than one location, the script prompts you to cho
 All prompts can be skipped by passing flags:
 
 ```bash
-npm run submit-to-fi -- \
+pnpm run submit-to-fi -- \
   --fi-url https://github.com/your-org/your-fi-extensions-repo \
   --local-path ../your-fi-extensions-repo \
   --project my-widget-name
@@ -182,9 +242,9 @@ npm run submit-to-fi -- \
 | `react`                                   | 18.2.0     |
 | `react-dom`                               | 18.2.0     |
 | `react-router-dom`                        | ^6.12.1    |
-| `@cdx-extensions/di-sdk`                  | 1.1.4      |
-| `@cdx-extensions/di-sdk-web`              | 2.1.6      |
-| `@cdx-extensions/di-sdk-types`            | 1.1.4      |
+| `@cdx-extensions/di-sdk`                  | 1.1.7      |
+| `@cdx-extensions/di-sdk-web`              | 2.1.8      |
+| `@cdx-extensions/di-sdk-types`            | 1.1.8      |
 | `@cdx-extensions/widget-template-web`     | 1.1.6      |
 
 ### Mobile (React Native packages)
@@ -194,13 +254,13 @@ npm run submit-to-fi -- \
 | `react`                                   | 19.1.4               |
 | `react-native`                            | 0.81.6               |
 | `expo`                                    | ~54.0.0 (optional)   |
-| `@cdx-extensions/di-sdk`                  | 1.1.4                |
-| `@cdx-extensions/di-sdk-mobile`           | 2.1.7                |
-| `@cdx-extensions/di-sdk-types`            | 1.1.4                |
-| `@cdx-extensions/widget-template-mobile`  | 1.1.10               |
+| `@cdx-extensions/di-sdk`                  | 1.1.7                |
+| `@cdx-extensions/di-sdk-mobile`           | 2.1.9                |
+| `@cdx-extensions/di-sdk-types`            | 1.1.8                |
+| `@cdx-extensions/extension-generator-mobile` | 1.1.6             |
+| `@cdx-extensions/widget-template-mobile`  | 1.1.12               |
 | `axios`                                   | 1.19.0               |
 | `axios-mock-adapter`                      | ^2.1.0               |
-
 > **⚠️ WARNING: Do not add dependencies without approval**
 >
 > Do not add runtime dependencies outside this list without coordinating with the platform team. Version conflicts between your package and the host app can cause runtime crashes.
@@ -211,17 +271,28 @@ npm run submit-to-fi -- \
 
 ## `package.json` and dependencies
 
-**Do not remove dependencies** from **`package.json`** files in this repository (especially the **root** `package.json` and **workspace** packages) unless the platform team has agreed to the change. This repo relies on **npm workspaces** and **nohoist** configuration so web (Nx) and mobile (Metro/Expo) work together; deleting or trimming dependencies can break installs, local runs, or CI. Only add or upgrade packages when needed and after checking the **Shared dependencies** tables above and the **[samples/web/README.md](samples/web/README.md)** / **[samples/mobile/README.md](samples/mobile/README.md)** guidance.
+**Do not remove dependencies** from **`package.json`** files in this repository (especially the **root** `package.json` and **mobile sandbox** `package.json`) unless the platform team has agreed to the change.
+
+Installs are **split on purpose** for speed and React majors:
+
+- **Root** — web/Nx (React **18**). No Expo/React Native.
+- **`playground/mobile-sandbox`** — Expo/Metro (React **19** + RN). Samples are linked via `file:` dependencies.
+
+Only add or upgrade packages when needed and after checking the **Shared dependencies** tables above and the **[samples/web/README.md](samples/web/README.md)** / **[samples/mobile/README.md](samples/mobile/README.md)** guidance.
+
+Mobile sample/template packages should declare `react` / `react-native` as **peerDependencies** only (runtime comes from the sandbox). Do not re-add them as `devDependencies`.
 
 ## Troubleshooting
 
 | Issue | Solution |
 |-------|----------|
-| **`npm install` fails with peer dependency conflicts (React)** | The repo pins **React 18** at the root for **web** while **mobile** (`playground/mobile-sandbox`) uses **React 19** + RN 0.81.x. `.npmrc` enables **`legacy-peer-deps`** so npm can install both trees. Run **`npm install` from the repo root** only. |
-| **`npm install` fails with 401/403 errors** | Check your `.npmrc` configuration. See [step 3](#3-configure-npmrc) above. |
-| **`command not found: nx`** | Either install Nx globally (`npm install -g nx`) or use `npx nx` instead. |
-| **Metro/Webpack errors about missing dependencies** | Run `npm install` from the **repo root**, not from a subdirectory. This is an npm workspace — all packages must install together. |
-| **TypeScript errors about `@cdx-extensions/*` packages** | Run `npm install` again from the repo root. Workspace linking may have failed. |
+| **Missing Expo / Metro / `react-native`** | Install the mobile root: `pnpm run setup:mobile` (or `ci:mobile`). Root install is web-only. |
+| **`pnpm run ci:mobile` fails after generate** | Expected — generators add `file:` deps to sandbox `package.json` without updating the lockfile. Run `pnpm exec nx start mobile-sandbox` (auto-syncs) or `pnpm run sync:mobile`. Do not use `ci:mobile` until the lock is synced. |
+| **`pnpm install` is slow or fails on Windows** | Use a short clone path without spaces, enable Win32 long paths, exclude `node_modules` from Defender, use Node 18/20 + pnpm 9+, and run `pnpm install --frozen-lockfile` in the correct root (repo vs sandbox). See [Windows cloud / VDI notes](#4-install-dependencies). |
+| **`pnpm install` fails with 401/403 errors** | Check your `.npmrc` configuration. See [step 3](#3-configure-npmrc) above. |
+| **`command not found: nx`** | Either install Nx globally (`pnpm install -g nx`) or use `pnpm exec nx` instead. |
+| **Metro/Webpack errors about missing dependencies** | Web: `pnpm install --frozen-lockfile` / `pnpm install` at repo root. Mobile: `pnpm run setup:mobile` / `sync:mobile`, or the same commands inside `playground/mobile-sandbox`. |
+| **TypeScript errors about `@cdx-extensions/*` packages** | Re-run `pnpm install --frozen-lockfile` in the install root that owns that package (root for web SDK; sandbox for mobile). |
 
 **Still stuck?** Contact the Candescent platform team.
 

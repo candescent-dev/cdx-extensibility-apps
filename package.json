@@ -1,51 +1,29 @@
 {
   "name": "@cdx-extensions/cdx-apps",
-  "version": "0.0.1",
+  "version": "1.1.9",
   "license": "MIT",
   "private": true,
-  "workspaces": {
-    "packages": [
-      "playground/mobile-sandbox",
-      "samples/mobile/*",
-      "samples/mobile/widgets/*",
-      "samples/mobile/feature/*",
-      "widgets/mobile/*",
-      "features/mobile/*"
-    ],
-    "// nohoist": "Packages listed below are not hoisted to root. They stay in each workspace's node_modules so Metro (mobile) can resolve them from playground/mobile-sandbox. Web/Nx continue to use root node_modules.",
-    "nohoist": [
-      "**/axios",
-      "**/axios/**",
-      "**/axios-mock-adapter",
-      "**/axios-mock-adapter/**",
-      "**/react-native",
-      "**/react-native/**",
-      "**/expo",
-      "**/expo/**",
-      "**/@expo/**",
-      "**/@react-native/**",
-      "**/metro",
-      "**/metro/**",
-      "**/metro-*",
-      "**/metro-*/**"
-    ]
-  },
   "scripts": {
     "postinstall": "node tools/scripts/patch-mui-esm.js",
-    "build": "nx build",
-    "build:sandbox": "nx build --configuration=sandbox",
-    "build:stage": "nx build --configuration=stage",
-    "build:production": "nx build --configuration=production",
+    "setup": "pnpm install --frozen-lockfile && pnpm run setup:mobile",
+    "setup:mobile": "pnpm run ci:mobile && node tools/scripts/install-mobile-samples.mjs --frozen",
+    "sync:mobile": "pnpm run install:mobile && node tools/scripts/install-mobile-samples.mjs",
+    "install:mobile": "pnpm install -C playground/mobile-sandbox",
+    "ci:mobile": "pnpm install --frozen-lockfile -C playground/mobile-sandbox",
+    "build": "node tools/scripts/run-root-build.mjs",
+    "build:sandbox": "node tools/scripts/run-root-build.mjs --configuration=sandbox",
+    "build:stage": "node tools/scripts/run-root-build.mjs --configuration=stage",
+    "build:production": "node tools/scripts/run-root-build.mjs --configuration=production",
     "submit-to-fi": "node tools/scripts/submit-to-fi-repo.js"
   },
   "dependencies": {
-    "@cdx-extensions/di-sdk": "1.1.4",
-    "@cdx-extensions/di-sdk-mobile": "2.1.7",
-    "@cdx-extensions/di-sdk-types": "1.1.4",
-    "@cdx-extensions/di-sdk-web": "2.1.6",
-    "@cdx-extensions/extension-generator-mobile": "1.1.3",
+    "@cdx-extensions/di-sdk": "1.1.7",
+    "@cdx-extensions/di-sdk-mobile": "2.1.9",
+    "@cdx-extensions/di-sdk-types": "1.1.8",
+    "@cdx-extensions/di-sdk-web": "2.1.8",
+    "@cdx-extensions/extension-generator-mobile": "1.1.6",
     "@cdx-extensions/extension-generator-web": "1.1.2",
-    "@cdx-extensions/widget-template-mobile": "1.1.10",
+    "@cdx-extensions/widget-template-mobile": "1.1.12",
     "@cdx-extensions/widget-template-web": "1.1.6",
     "@emotion/react": "11.11.1",
     "@emotion/styled": "11.11.0",
@@ -63,6 +41,7 @@
     "@babel/plugin-proposal-decorators": "^7.24.7",
     "@babel/plugin-syntax-dynamic-import": "^7.8.3",
     "@babel/plugin-transform-class-properties": "^7.18.6",
+    "@babel/preset-env": "^7.29.7",
     "@babel/preset-react": "^7.14.5",
     "@emotion/babel-plugin": "11.11.0",
     "@eslint/js": "8.57.0",
@@ -110,69 +89,8 @@
     "react-refresh": "^0.14.0",
     "ts-jest": "^29.1.0",
     "ts-node": "10.9.2",
+    "tslib": "^2.8.1",
     "typescript": "5.5.3"
-  },
-  "overrides": {
-    "node-forge": ">=1.4.0",
-    "picomatch": ">=2.3.2 <3.0.0 || >=3.0.2 <4.0.0 || >=4.0.4",
-    "brace-expansion": ">=1.1.13 <2.0.0 || >=2.0.3 <3.0.0",
-    "shell-quote": ">=1.8.4",
-    "tar": "7.5.21",
-    "@expo/cli": {
-      "tar": "7.5.21"
-    },
-    "cacache": {
-      "tar": "7.5.21"
-    },
-    "follow-redirects": "1.15.6",
-    "axios": "1.19.0",
-    "glob": "13.0.6",
-    "uuid": "11.1.0",
-    "ejs": "6.0.1",
-    "cross-spawn": "7.0.6",
-    "postcss": "8.5.25",
-    "image-size": "2.0.2",
-    "metro": {
-      "image-size": "1.2.1"
-    },
-    "adm-zip": "0.6.0",
-    "serialize-javascript": "7.0.7",
-    "webpack": "5.88.0",
-    "@xmldom/xmldom": "0.8.13",
-    "lodash": "4.18.1",
-    "lodash-es": "4.18.1",
-    "minimatch": "9.0.9",
-    "test-exclude": "7.0.2",
-    "koa": "3.1.2",
-    "websocket-driver": "0.7.5",
-    "@module-federation/dts-plugin": {
-      "ws": "8.21.2"
-    }
-  },
-  "resolutions": {
-    "shell-quote": ">=1.8.4",
-    "tar": "7.5.21",
-    "follow-redirects": "1.15.6",
-    "axios": "1.19.0",
-    "glob": "13.0.6",
-    "uuid": "11.1.0",
-    "ejs": "6.0.1",
-    "cross-spawn": "7.0.6",
-    "postcss": "8.5.25",
-    "image-size": "2.0.2",
-    "metro": {
-      "image-size": "1.2.1"
-    },
-    "adm-zip": "0.6.0",
-    "serialize-javascript": "7.0.7",
-    "webpack": "5.88.0",
-    "@xmldom/xmldom": "0.8.13",
-    "lodash": "4.18.1",
-    "lodash-es": "4.18.1",
-    "minimatch": "9.0.9",
-    "test-exclude": "7.0.2",
-    "koa": "3.1.2",
-    "websocket-driver": "0.7.5"
   },
   "nx": {
     "targets": {
@@ -196,6 +114,42 @@
           "command": "node node_modules/@cdx-extensions/extension-generator-web/dist/scripts/list-web-widget-templates.js"
         }
       }
+    }
+  },
+  "packageManager": "pnpm@9.15.9",
+  "engines": {
+    "node": ">=18 <21",
+    "pnpm": ">=9"
+  },
+  "pnpm": {
+    "overrides": {
+      "node-forge": ">=1.4.0",
+      "picomatch": ">=2.3.2 <3.0.0 || >=3.0.2 <4.0.0 || >=4.0.4",
+      "brace-expansion": ">=1.1.13 <2.0.0 || >=2.0.3 <3.0.0",
+      "shell-quote": ">=1.8.4",
+      "tar": "7.5.21",
+      "@expo/cli>tar": "7.5.21",
+      "cacache>tar": "7.5.21",
+      "follow-redirects": "1.16.0",
+      "axios": "1.19.0",
+      "glob": "13.0.6",
+      "uuid": "11.1.1",
+      "ejs": "6.0.1",
+      "cross-spawn": "7.0.6",
+      "postcss": "8.5.25",
+      "image-size": "2.0.2",
+      "metro>image-size": "1.2.1",
+      "adm-zip": "0.6.0",
+      "serialize-javascript": "7.0.7",
+      "webpack": "5.88.0",
+      "@xmldom/xmldom": "0.8.13",
+      "lodash": "4.18.1",
+      "lodash-es": "4.18.1",
+      "minimatch": "9.0.9",
+      "test-exclude": "7.0.2",
+      "koa": "3.1.2",
+      "websocket-driver": "0.7.5",
+      "@module-federation/dts-plugin>ws": "8.21.2"
     }
   }
 }

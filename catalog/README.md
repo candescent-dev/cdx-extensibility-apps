@@ -27,7 +27,7 @@ Template overlays are downloaded from **public npm** when you run the generator.
   ```ini
    @cdx-extensions:registry=https://registry.npmjs.org/
   ```
-   The same `.npmrc` used for `npm install` of `@cdx-extensions/*` also applies to generator overlay downloads and optional `npm pack`.
+   The same `.npmrc` used for `pnpm install` of `@cdx-extensions/*` also applies to generator overlay downloads and optional `pnpm pack`.
 
 2. **Internal Candescent devs (JFrog)** — use the same `.npmrc` pattern as other `@cdx-extensions` packages (in repo `.npmrc` or `~/.npmrc`; do not commit secrets):
   ```ini
@@ -46,12 +46,12 @@ Template overlays are downloaded from **public npm** when you run the generator.
 
 | Command | Why |
 | ------- | --- |
-| `npx nx run generate-mobile-extensions` | Interactive: type (from catalog) → category → template → fiId → name |
-| `npx nx run generate-mobile-widget` | Widgets only |
-| `npx nx run generate-mobile-feature` | Features only |
-| `npx nx run generate-mobile-widget -- --template=investment-portfolio --fiId=0123 --name=my-widget` | Skip prompts (4-digit FI id) |
-| `npx nx run generate-mobile-widget -- --template=investment-portfolio --fiId=03100 --name=my-widget` | Skip prompts (5-digit FI id) |
-| `npx nx run generate-mobile-feature -- --template=agent-chat --fiId=0123 --name=my-feature` | Skip prompts |
+| `pnpm exec nx run generate-mobile-extensions` | Interactive: type (from catalog) → category → template → fiId → name |
+| `pnpm exec nx run generate-mobile-widget` | Widgets only |
+| `pnpm exec nx run generate-mobile-feature` | Features only |
+| `pnpm exec nx run generate-mobile-widget -- --template=investment-portfolio --fiId=0123 --name=my-widget` | Skip prompts (4-digit FI id) |
+| `pnpm exec nx run generate-mobile-widget -- --template=investment-portfolio --fiId=03100 --name=my-widget` | Skip prompts (5-digit FI id) |
+| `pnpm exec nx run generate-mobile-feature -- --template=agent-chat --fiId=0123 --name=my-feature` | Skip prompts |
 
 Output: `widgets/mobile/<name>/` or `features/mobile/<name>/` depending on template type.
 
@@ -62,7 +62,7 @@ Output: `widgets/mobile/<name>/` or `features/mobile/<name>/` depending on templ
 Re-fetch catalog and overlays after platform publishes:
 
 ```bash
-npx nx run generate-mobile-widget -- --template=investment-portfolio --fiId=0123 --name=my-widget --noCache
+pnpm exec nx run generate-mobile-widget -- --template=investment-portfolio --fiId=0123 --name=my-widget --noCache
 ```
 
 The catalog is cached locally for ~5 minutes; use `--noCache` right after editing the remote JSON on GitHub. If the remote URL is unreachable, the generator falls back to **stale cache**, then local `catalog/extension-templates.json`.

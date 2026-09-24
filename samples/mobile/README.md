@@ -13,13 +13,29 @@ For web widgets and Module Federation details, see **[samples/web/README.md](../
 > **First time?** Complete the setup in the **[repository root README](../../README.md#getting-started-step-by-step)** first (Node.js, npm, Nx).
 
 ```bash
-# From repository root
-npx nx start mobile-sandbox         # Start Metro bundler
+# From repository root — install web tooling, then the mobile sandbox
+pnpm install --frozen-lockfile
+pnpm run setup:mobile                # or: pnpm run ci:mobile
+
+pnpm exec nx start mobile-sandbox         # Start Metro bundler
 
 # In the Metro / Expo terminal (after the dev server is up), press:
 i    # iOS Simulator (macOS only)
-a    # Android emulator         
+a    # Android emulator
+# Do not press w — web is not supported in this sandbox
 ```
+
+### Catalog generate → build → start
+
+```bash
+pnpm exec nx run generate-mobile-extensions
+pnpm exec nx run generate-mobile-widget -- --fiId=0123 --template=credit-score --name=test-widget
+pnpm exec nx run generate-mobile-feature -- --template=agent-chat --fiId=0123 --name=my-feature
+
+pnpm exec nx start mobile-sandbox             # builds samples + wired generated packages; auto-syncs sandbox deps
+```
+
+After generate, do **not** run `pnpm run ci:mobile`. Prefer start (auto-sync) or `pnpm run sync:mobile`.
 
 **Next steps:**
 - See [Getting started (step-by-step)](#getting-started-step-by-step) below for full workflow
@@ -61,8 +77,8 @@ Investment portfolio example: donut chart, legend, and sample data hooks.
 | Requirement | Version | Notes |
 |-------------|---------|--------|
 | **Node.js** | 18 LTS or 20 LTS | Required for Expo, Metro, and native builds |
-| **npm** | 9+ | `npx` ships with npm — no separate install needed. Not every Node 18.x release bundles npm 9+; upgrade npm if `npm -v` is below 9. |
-| **Nx** | 22+ (or use `npx nx`) | Global install is optional; prefix commands with `npx` instead |
+| **pnpm** | 9+ | `npx` ships with npm — no separate install needed. Not every Node 18.x release bundles npm 9+; upgrade npm if `npm -v` is below 9. |
+| **Nx** | 22+ (or use `pnpm exec nx`) | Global install is optional; prefix commands with `npx` instead |
 | **Expo CLI** | Included via `npx expo` | No global install needed |
 | **iOS Simulator** (macOS) or **Android Emulator** | Latest stable | Or a physical device with [Expo Go](https://expo.dev/go). **iOS:** [Set up iOS Simulator](https://docs.expo.dev/workflow/ios-simulator/). **Android:** [Set up Android Emulator](https://docs.expo.dev/workflow/android-studio-emulator/). |
 
@@ -71,7 +87,7 @@ Investment portfolio example: donut chart, legend, and sample data hooks.
 The sandbox app under `playground/mobile-sandbox` hosts the sample packages. **Metro uses port 8083.**
 
 ```bash
-npx nx start mobile-sandbox
+pnpm exec nx start mobile-sandbox
 
 # In the Metro / Expo terminal (after the dev server is up), press:
 i    # iOS Simulator (macOS only)
@@ -87,18 +103,18 @@ For more details, see the **[Mobile Sandbox README](../../playground/mobile-sand
 From the repo root:
 
 ```bash
-npx nx run investment-portfolio:typecheck
-npx nx run investment-portfolio:build
+pnpm exec nx run investment-portfolio:typecheck
+pnpm exec nx run investment-portfolio:build
 
-npx nx run agent-feature:typecheck
-npx nx run agent-feature:build
+pnpm exec nx run agent-feature:typecheck
+pnpm exec nx run agent-feature:build
 ```
 
 Or from a package directory after install:
 
 ```bash
-npm run typecheck
-npm run build
+pnpm run typecheck
+pnpm run build
 ```
 
 ---
@@ -143,7 +159,7 @@ For the full walkthrough — scaffolded file layout, what you can edit, common p
 
 ### Commands
 
-From the repository root (use `npx nx` if Nx is not installed globally):
+From the repository root (use `pnpm exec nx` if Nx is not installed globally):
 
 **Feature** — full-screen experience with its own navigation route:
 
@@ -172,12 +188,13 @@ nx generate @cdx-extensions/widget-template-mobile:feature --fiId=0000 --name=my
 nx generate @cdx-extensions/widget-template-mobile:widget --fiId=0000 --name=my-widget
 ```
 
-After generation, install and run the sandbox to verify:
+After generation, start the sandbox:
 
 ```bash
-npm install
-npx nx start mobile-sandbox
+pnpm exec nx start mobile-sandbox                    # builds samples + wired generated packages; auto-syncs file: deps
 ```
+
+If start cannot sync, run `pnpm run sync:mobile` (alias: `install:mobile`) from the repo root. Do **not** run `pnpm run ci:mobile` until the lockfile includes the new packages. For watch rebuilds while editing, run `pnpm run dev` in the package folder.
 
 ### Align `@cdx-extensions/di-sdk` and `@cdx-extensions/di-sdk-types`
 
@@ -185,7 +202,7 @@ The generator template’s **`package.json`** may pin older **peer** versions th
 
 1. Open the generated `**package.json`** under `samples/mobile/feature/<name>/` or `samples/mobile/widgets/<name>/`.
 2. In `**peerDependencies`**, set `**@cdx-extensions/di-sdk**` and `**@cdx-extensions/di-sdk-types**` to the exact versions in **[Shared dependencies](../../README.md#shared-dependencies)** (mobile table in the repository root README). Add `**@cdx-extensions/di-sdk-types`** if it is missing.
-3. Run `**npm install`** again from the **repository root** so the workspace resolves the same versions as the sandbox and other samples.
+3. Run `**pnpm install`** again from the **repository root** so the workspace resolves the same versions as the sandbox and other samples.
 
 ### Option B — Copy an existing sample
 
@@ -201,12 +218,14 @@ The generator template’s **`package.json`** may pin older **peer** versions th
 
 | Issue | Solution |
 |-------|----------|
-| **Metro can't resolve a workspace package** | Check `watchFolders`, `nodeModulesPaths`, and `extraNodeModules` in `playground/mobile-sandbox/metro.config.js`. Run `npm install` from the repo root. |
+| **`pnpm run ci:mobile` fails after generate** | Generators add `file:` deps without updating the sandbox lockfile. Use `pnpm exec nx start mobile-sandbox` (auto-sync) or `pnpm run sync:mobile`. |
+| **Metro can't resolve a workspace package** | Check `watchFolders`, `nodeModulesPaths`, and `extraNodeModules` in `playground/mobile-sandbox/metro.config.js`. Run `pnpm run setup:mobile` or `sync:mobile`. |
+| **Invalid hook call / useMemo of null** | Duplicate React (sandbox vs repo root). Restart Metro with cache clear after the sandbox Metro singleton pin; do not resolve `react` from the repo root. |
 | **Axios / Node crypto errors in React Native** | Keep `axios` on the version in **[Shared dependencies](../../README.md#shared-dependencies)** (mobile table). Prefer `sdk.getHttpClient()` for API calls. |
-| **Changes to samples not appearing in sandbox** | Rebuild the sample package (`npx nx run <package>:build`), then reload the Expo app. |
-| **TypeScript errors about `@cdx-extensions/*` packages** | Run `npm install` from the repo root. Workspace linking may have failed. |
+| **Changes to samples not appearing in sandbox** | Rebuild the sample package (`pnpm exec nx run <package>:build`), then reload the Expo app. |
+| **TypeScript errors about `@cdx-extensions/*` packages** | Run `pnpm install` from the repo root. Workspace linking may have failed. |
 | **Build fails with missing peer dependencies** | Ensure all peer dependencies listed in sample `package.json` are installed. Check `playground/mobile-sandbox/package.json`. |
-| **Generated feature/widget won’t build, or TypeScript types disagree with other packages** | The template may ship stale SDK peers. In the new package’s `package.json`, align **`peerDependencies`** for **`@cdx-extensions/di-sdk`** and **`@cdx-extensions/di-sdk-types`** with **[Shared dependencies](../../README.md#shared-dependencies)** (mobile table); add **`di-sdk-types`** if omitted. Then **`npm install`** from the repo root. |
+| **Generated feature/widget won’t build, or TypeScript types disagree with other packages** | The template may ship stale SDK peers. In the new package’s `package.json`, align **`peerDependencies`** for **`@cdx-extensions/di-sdk`** and **`@cdx-extensions/di-sdk-types`** with **[Shared dependencies](../../README.md#shared-dependencies)** (mobile table); add **`di-sdk-types`** if omitted. Then **`pnpm install`** from the repo root. |
 
 **Still stuck?** Contact the Candescent platform team.
 
@@ -215,9 +234,9 @@ The generator template’s **`package.json`** may pin older **peer** versions th
 ## Running tasks
 
 ```bash
-npx nx <target> <project>
-npx nx run-many -t <target1> <target2>
-npx nx run-many -t <target1> -p <proj1> <proj2>
+pnpm exec nx <target> <project>
+pnpm exec nx run-many -t <target1> <target2>
+pnpm exec nx run-many -t <target1> -p <proj1> <proj2>
 ```
 
 See [Nx docs](https://nx.dev/core-features/run-tasks).

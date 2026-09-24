@@ -78,17 +78,17 @@ See [Changing the local port](#changing-the-local-port) if you need to run widge
 
 ```bash
 # Build for a specific environment (replace <widget-name> with the widget you want to build)
-npm run build -- <widget-name>                    # local (development)
-npm run build:sandbox -- <widget-name>            # sandbox
-npm run build:stage -- <widget-name>              # stage
-npm run build:production -- <widget-name>         # production
+pnpm run build -- <widget-name>                    # local (development)
+pnpm run build:sandbox -- <widget-name>            # sandbox
+pnpm run build:stage -- <widget-name>              # stage
+pnpm run build:production -- <widget-name>         # production
 ```
 
 **Examples:**
 ```bash
-npm run build:sandbox -- agent-widget
-npm run build:stage -- qa-automation-widget
-npm run build:production -- investmentportfolio-widget
+pnpm run build:sandbox -- agent-widget
+pnpm run build:stage -- qa-automation-widget
+pnpm run build:production -- investmentportfolio-widget
 ```
 
 **Available configurations:** `development` (default/local), `sandbox`, `stage`, `production`.
@@ -318,7 +318,7 @@ Example — changing `agent-widget` to port `4103`:
 |-------|----------|
 | **Widget doesn't load in browser** | Check the port number in the console output. Make sure no other service is using that port. |
 | **Module Federation errors** | Do not modify `webpack.config.ts`, `main.ts`, or `bootstrap.tsx`. These files are required for Module Federation. |
-| **Build fails with TypeScript errors** | Run `npm install` from the **repo root**. Workspace linking may have failed. |
+| **Build fails with TypeScript errors** | Run `pnpm install` from the **repo root**. Workspace linking may have failed. |
 | **Widget works locally but not in OLB** | Verify your `module-federation.config.ts` `name` field matches exactly what is registered in the NextGen Admin Portal. |
 | **Dependency version conflicts** | Only use packages from the [Shared dependencies](../../README.md#shared-dependencies) table. Version mismatches can cause runtime crashes. |
 
@@ -331,7 +331,7 @@ Example — changing `agent-widget` to port `4103`:
 Nx automatically caches `build`, `test`, and `lint` results on your local disk. If the inputs to a task haven't changed, Nx replays the cached output instantly — no configuration needed.
 
 ```bash
-npm run build -- agent-widget        # replays from cache if nothing changed
+pnpm run build -- agent-widget        # replays from cache if nothing changed
 ```
 
 **Skip the cache for a single run:**

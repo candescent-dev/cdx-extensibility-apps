@@ -7,21 +7,21 @@
     "start": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "npx nx run-many -t build -p investment-portfolio,agent-feature && node ./playground/mobile-sandbox/scripts/run-with-preview.mjs --platform=start",
+        "command": "node ./tools/scripts/sync-mobile-sandbox-if-needed.mjs && node ./tools/scripts/install-mobile-samples.mjs --frozen && pnpm exec nx run-many -t build -p investment-portfolio,agent-feature && node ./playground/mobile-sandbox/scripts/run-with-preview.mjs --platform=start",
         "forwardAllArgs": true
       }
     },
     "android": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "npx nx run-many -t build -p investment-portfolio,agent-feature && node ./playground/mobile-sandbox/scripts/run-with-preview.mjs --platform=android",
+        "command": "node ./tools/scripts/sync-mobile-sandbox-if-needed.mjs && node ./tools/scripts/install-mobile-samples.mjs --frozen && pnpm exec nx run-many -t build -p investment-portfolio,agent-feature && node ./playground/mobile-sandbox/scripts/run-with-preview.mjs --platform=android",
         "forwardAllArgs": true
       }
     },
     "ios": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "npx nx run-many -t build -p investment-portfolio,agent-feature && node ./playground/mobile-sandbox/scripts/run-with-preview.mjs --platform=ios",
+        "command": "node ./tools/scripts/sync-mobile-sandbox-if-needed.mjs && node ./tools/scripts/install-mobile-samples.mjs --frozen && pnpm exec nx run-many -t build -p investment-portfolio,agent-feature && node ./playground/mobile-sandbox/scripts/run-with-preview.mjs --platform=ios",
         "forwardAllArgs": true
       }
     }

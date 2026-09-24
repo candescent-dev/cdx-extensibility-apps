@@ -14,3 +14,8 @@ ignore:
       reason: Synthetic FI demo fixture with fictional prices for local widget development; not production confidential data.
     templates/web/dev/widget/investmentportfolio/src/__mocks__/investmentMock.json:
       reason: Synthetic FI demo fixture with fictional prices for local widget development; not production confidential data.
+  global_libraries:
+    image-size@1.2.1:
+      reason: Metro 0.83.x requires image-size 1.x; global 2.0.2 override (for less/webpack CVEs) breaks Android bundling. Build-time only, no fixed version available.
+    playground/mobile-sandbox/package.json:
+      reason: Declares metro>image-size 1.2.1 override for Metro compatibility with nested pnpm overrides.
