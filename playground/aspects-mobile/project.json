@@ -1,0 +1,28 @@
+{
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "name": "aspects-mobile-preview",
+  "projectType": "application",
+  "root": "playground/aspects-mobile",
+  "targets": {
+    "serve": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "node playground/aspects-mobile/serve.mjs",
+        "forwardAllArgs": true
+      }
+    },
+    "check": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "node playground/aspects-mobile/check.mjs",
+        "forwardAllArgs": true
+      }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "node --test playground/aspects-mobile/test/conformance.test.mjs playground/aspects-mobile/test/check.test.mjs playground/aspects-mobile/test/form-values.test.mjs playground/aspects-mobile/test/submit-flow.test.mjs playground/aspects-mobile/test/settings.test.mjs"
+      }
+    }
+  }
+}

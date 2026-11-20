@@ -3,3 +3,5 @@
 /coverage
 /.nx/cache
 /.nx/workspace-data
+# Published static loaders are pinned by SRI: reformatting changes their hash
+/samples/mobile/aspects/*/*.v[0-9]*.js

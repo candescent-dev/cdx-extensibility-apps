@@ -57,3 +57,10 @@ playground/mobile-sandbox/.expo
 playground/mobile-sandbox/.expo-shared
 playground/mobile-sandbox/android
 playground/mobile-sandbox/ios
+
+# submit-to-fi: last FI repo URL and clone path (this machine only)
+.submit-to-fi.local.json
+
+# Mobile and web aspects are committed to the FI repo by submit-to-fi, not to this repo
+aspects/mobile/*/
+aspects/web/*/

@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chat assistance</title>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+        }
+
+        body {
+            font-family: "SF Pro", "SF Pro Text", -apple-system, BlinkMacSystemFont, sans-serif;
+            color: #1c1c1c;
+            background: transparent;
+        }
+
+        body.collapsed {
+            background: transparent;
+        }
+
+        #stage {
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            gap: 8px;
+        }
+
+        body.collapsed #stage {
+            align-items: flex-end;
+            justify-content: flex-end;
+            padding-right: 8px;
+        }
+
+        #panel {
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            flex: 1 1 auto;
+            min-height: 0;
+            width: 100%;
+            background: #fff;
+            border: 1px solid #e9e9e9;
+            border-radius: 24px;
+            box-shadow: 0 20px 48px -8px rgba(47, 36, 69, 0.18);
+            overflow: hidden;
+        }
+
+        #panel[hidden] {
+            display: none;
+        }
+
+        body:not(.collapsed) #stage {
+            height: auto;
+        }
+
+        body:not(.collapsed) #panel {
+            flex: none;
+            height: 500px;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 16px;
+            border-bottom: 1px solid #e9e9e9;
+            background: #fff;
+        }
+
+        .identity {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+        }
+
+        .avatar {
+            position: relative;
+            width: 32px;
+            height: 32px;
+            flex-shrink: 0;
+        }
+
+        .avatar img,
+        .bubble-row .mark img {
+            width: 62%;
+            height: 62%;
+            object-fit: contain;
+            display: block;
+            pointer-events: none;
+        }
+
+        .mark {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: #e7f2fa;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .avatar .mark {
+            width: 32px;
+            height: 32px;
+        }
+
+        .online {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #1b8a3e;
+            border: 2px solid #fff;
+            box-sizing: border-box;
+        }
+
+        header h1 {
+            margin: 0;
+            font-family: "Crimson Pro", Georgia, "Times New Roman", serif;
+            font-size: 24px;
+            font-weight: 400;
+            line-height: 32px;
+        }
+
+        .status {
+            font-size: 10px;
+            line-height: 12px;
+            color: #8f9090;
+        }
+
+        .icon-btn {
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            border: 0;
+            background: transparent;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #messages {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding: 16px 20px 20px;
+            background: #fff;
+        }
+
+        .bubble-row {
+            display: flex;
+            align-items: flex-end;
+            gap: 8px;
+            width: 100%;
+        }
+
+        .bubble-row.user {
+            justify-content: flex-end;
+        }
+
+        .stack {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            min-width: 0;
+        }
+
+        .bubble-row.user .stack {
+            align-items: flex-end;
+            max-width: 75%;
+        }
+
+        .bubble-row.bot .stack {
+            align-items: flex-start;
+            flex: 1;
+        }
+
+        .bubble-row.bot .mark {
+            width: 24px;
+            height: 24px;
+        }
+
+        .bot-tile {
+            box-sizing: border-box;
+            background: #fff;
+            border: 1px solid #e9e9e9;
+            border-radius: 16px;
+            padding: 13px 16px;
+            max-width: 100%;
+        }
+
+        .bot-title {
+            font-size: 14px;
+            line-height: 20px;
+            font-weight: 500;
+        }
+
+        .bot-body {
+            font-size: 14px;
+            line-height: 20px;
+            font-weight: 400;
+            white-space: pre-wrap;
+        }
+
+        .user-pill {
+            background: #0e6aa8;
+            color: #fff;
+            border-radius: 8px;
+            padding: 6px 12px;
+            font-size: 12px;
+            line-height: 16px;
+            font-weight: 500;
+        }
+
+        .time {
+            font-size: 10px;
+            line-height: 12px;
+            color: #8f9090;
+        }
+
+        .user-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #f2f2f2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .typing {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 14px 16px;
+        }
+
+        .typing span {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #0e6aa8;
+            animation: ca-bounce 1.4s infinite ease-in-out;
+        }
+
+        .typing span:nth-child(1) { animation-delay: -0.32s; }
+        .typing span:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes ca-bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+
+        #quick-replies {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px 16px;
+            padding: 11px 16px 12px;
+            border-top: 1px solid #e9e9e9;
+            background: #fff;
+        }
+
+        #quick-replies button {
+            padding: 2px 10px;
+            border: 1px solid #0e6aa8;
+            background: #fff;
+            color: #0e6aa8;
+            border-radius: 999px;
+            font-size: 12px;
+            line-height: 16px;
+            font-weight: 500;
+            font-family: inherit;
+            cursor: pointer;
+        }
+
+        #composer {
+            background: #fff;
+            border-top: 1px solid #e9e9e9;
+        }
+
+        .field {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px 0;
+        }
+
+        #input {
+            flex: 1;
+            min-width: 0;
+            height: 44px;
+            padding: 0 12px;
+            border: 1px solid #e9e9e9;
+            border-radius: 12px;
+            font-size: 14px;
+            line-height: 20px;
+            font-family: inherit;
+            color: #1c1c1c;
+            outline: none;
+            background: #fff;
+        }
+
+        #input:focus {
+            border-color: #0e6aa8;
+        }
+
+        #send {
+            width: 44px;
+            height: 44px;
+            padding: 0;
+            border: 0;
+            border-radius: 50%;
+            background: #0e6aa8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .disclaimer {
+            padding: 10px 12px 8px;
+            text-align: center;
+            font-size: 12px;
+            line-height: 16px;
+            color: #8f9090;
+        }
+
+        #launcher {
+            flex: 0 0 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 8px;
+        }
+
+        body.collapsed #launcher {
+            flex: none;
+            width: 100%;
+            height: 100%;
+            align-items: flex-end;
+            justify-content: flex-end;
+            padding: 0 4px 4px 0;
+        }
+
+        .launcher-stack {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        body.collapsed #icon-close,
+        body:not(.collapsed) #icon-chat,
+        body:not(.collapsed) #badge {
+            display: none;
+        }
+
+        .fab-shell {
+            position: relative;
+            width: 60px;
+            height: 60px;
+        }
+
+        body:not(.collapsed) .fab-shell {
+            width: 60px;
+            height: 60px;
+        }
+
+        #fab {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            box-sizing: border-box;
+            width: 56px;
+            height: 56px;
+            padding: 0;
+            border: 0;
+            border-radius: 50%;
+            cursor: pointer;
+            display: grid;
+            place-items: center;
+            line-height: 0;
+            color: #1c1c1c;
+            background: linear-gradient(180deg, #ffffff 0%, #ffe56b 46%, #8fd4f8 100%);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+        }
+
+        body:not(.collapsed) #fab {
+            width: 56px;
+            height: 56px;
+            border: 3px solid #fff;
+            background: linear-gradient(180deg, #9fd6f5 0%, #e4ef8a 48%, #ffe56b 100%);
+            box-shadow: none;
+        }
+
+        #fab svg {
+            display: block;
+            grid-area: 1 / 1;
+        }
+
+        #icon-chat {
+            transform: translateY(2px);
+        }
+
+        #badge {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #e1262d;
+            color: #fff;
+            border: 2px solid #fff;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            line-height: 1;
+            z-index: 1;
+        }
+
+        #badge[hidden] {
+            display: none;
+        }
+    </style>
+</head>
+<body class="collapsed">
+    <div id="stage">
+        <section id="panel" hidden aria-label="ChatBot Assistant">
+            <header>
+                <div class="identity">
+                    <div class="avatar">
+                        <div class="mark">
+                            <img src="https://dev.dbk.ncr.com/SmartToy.svg" alt="" />
+                        </div>
+                        <span class="online" aria-hidden="true"></span>
+                    </div>
+                    <div>
+                        <h1>ChatBot Assistant</h1>
+                        <div class="status">Online</div>
+                    </div>
+                </div>
+                <button id="close" class="icon-btn" type="button" aria-label="Close chat">
+                    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                        <path d="M7.5 7.5l9 9M16.5 7.5l-9 9" fill="none" stroke="#1c1c1c" stroke-width="2.1" stroke-linecap="round"></path>
+                    </svg>
+                </button>
+            </header>
+            <div id="messages" role="log"></div>
+            <div id="quick-replies">
+                <button type="button">Hello!</button>
+                <button type="button">What can you do?</button>
+                <button type="button">Joke</button>
+                <button type="button">Help</button>
+            </div>
+            <div id="composer">
+                <div class="field">
+                    <input id="input" type="text" autocomplete="off" placeholder="Type a message..." aria-label="Chat message" />
+                    <button id="send" type="button" aria-label="Send message">
+                        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+                            <path d="M4.8 18.4 19.4 12 4.8 5.6v4.8l8.4 1.6-8.4 1.6v4.8z" fill="none" stroke="#fff" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div class="disclaimer">AI can make mistakes. Check important information.</div>
+            </div>
+        </section>
+        <div id="launcher">
+            <div class="launcher-stack">
+            <div class="fab-shell">
+                <button id="fab" type="button" aria-label="Open chat with ChatBot Assistant">
+                    <svg id="icon-chat" viewBox="0 0 32 32" width="28" height="28" aria-hidden="true">
+                        <path d="M9 7h14a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3h-6.2L13 24.6c-.5.5-1.3.1-1.3-.6V21H9a3 3 0 0 1-3-3v-8a3 3 0 0 1 3-3z" fill="#1c1c1c"></path>
+                        <path d="M11 12.2h10M11 15.2h7.2M11 18.2h4.4" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round"></path>
+                    </svg>
+                    <svg id="icon-close" viewBox="0 0 24 24" width="28" height="28" aria-hidden="true" hidden>
+                        <path d="M6.5 6.5l11 11M17.5 6.5l-11 11" fill="none" stroke="#1c1c1c" stroke-width="2.6" stroke-linecap="round"></path>
+                    </svg>
+                </button>
+                <span id="badge" aria-hidden="true">1</span>
+            </div>
+            </div>
+        </div>
+    </div>
+    <template id="bot-mark">
+        <div class="mark"><img src="https://dev.dbk.ncr.com/SmartToy.svg" alt="" /></div>
+    </template>
+    <script>
+        /**
+         * Chat assistance panel (web chatbot UI). Markup and styles are in this document.
+         *
+         * Talks only to window.parent (the static loader's document, on the FI origin), with
+         * { type: 'ASPECT_UI', version: '1.0', direction, action, data } (`data`, not `payload`, so the
+         * platform bridge does not also relay these messages to the host):
+         *   'aspectToHost'  out: chatbotOpen { reason }, chatbotMinimize { status } (manifest names).
+         *                   The aspect extension checks them and sends them to the host.
+         *   'hostToAspect'  in:  chatbotOpen and contextUpdate (context only: the host sends
+         *                   chatbotOpen when it reveals the frame at FAB size, so it must not
+         *                   expand the panel), chatbotMinimize
+         *                   { status: 'host_minimized' } from the host, forwarded unchanged.
+         *   'uiToLoader'    out: uiReady, identityRefresh
+         *   'loaderToUi'    in:  aspectInit, identityUpdate, messageRejected
+         */
+        (function () {
+            'use strict';
+
+            var ENVELOPE = 'ASPECT_UI';
+            // Before production, list the FI origins allowed to frame this page, e.g. ['https://olb.example-bank.com'].
+            // While empty, any #parentOrigin or referrer origin is trusted, so any page that frames this UI is trusted.
+            var ALLOWED_PARENT_ORIGINS = [];
+
+            var WELCOME = "Hi! I'm your assistant.\nI can help with account questions, the current time/date, or general conversation.\n\nJust type your question!";
+            var welcomeText = WELCOME;
+            var REPLIES = {
+                greetings: {
+                    keywords: ['hello', 'hi', 'hey', 'good morning', 'good afternoon', 'good evening'],
+                    messages: ['Hello! \u{1F44B} How can I help you today?', 'Hi there! Nice to meet you! \u{1F60A}', "Hey! What's on your mind?"],
+                },
+                goodbye: {
+                    keywords: ['bye', 'goodbye', 'see you', 'later', 'quit'],
+                    messages: ['Goodbye! Have a great day! \u{1F44B}', 'See you later! Take care! \u{1F60A}', 'Bye! Come back anytime!'],
+                },
+                thanks: {
+                    keywords: ['thank', 'thanks', 'appreciate'],
+                    messages: ["You're welcome! \u{1F60A}", 'Happy to help!', 'Anytime! Let me know if you need anything else.'],
+                },
+                help: {
+                    keywords: ['help', 'support', 'assist', 'what can you do'],
+                    messages: ['I can help you with:\n\u2022 Answering questions\n\u2022 Telling jokes\n\u2022 Showing the time/date\n\u2022 General conversation\n\nJust type your question!'],
+                },
+                joke: {
+                    keywords: ['joke', 'funny', 'laugh', 'humor'],
+                    messages: [
+                        "Why don't scientists trust atoms? Because they make up everything! \u{1F604}",
+                        'Why did the scarecrow win an award? He was outstanding in his field! \u{1F33E}',
+                        "Why don't eggs tell jokes? They'd crack each other up! \u{1F95A}",
+                        'What do you call a fake noodle? An impasta! \u{1F35D}',
+                    ],
+                },
+                time: { keywords: ['time', 'clock', 'what time'], type: 'time' },
+                date: { keywords: ['date', 'today', 'what day'], type: 'date' },
+                name: {
+                    keywords: ['your name', 'who are you', 'what are you'],
+                    messages: ["I'm ChatBot, your friendly AI assistant! \u{1F916}", "You can call me ChatBot! I'm here to help. \u{1F60A}"],
+                },
+                feeling: {
+                    keywords: ['how are you', 'how do you feel', "what's up"],
+                    messages: ["I'm doing great, thanks for asking! \u{1F60A} How about you?", "I'm feeling helpful today! What can I do for you?"],
+                },
+                default: {
+                    messages: [
+                        'Interesting! Tell me more about that.',
+                        "I'm not sure I understand. Could you rephrase that?",
+                        "That's a great question! Let me think... \u{1F914}",
+                        "Hmm, I'm still learning. Try asking me about jokes, time, or type 'help'.",
+                    ],
+                },
+            };
+
+            var messagesEl = document.getElementById('messages');
+            var panelEl = document.getElementById('panel');
+            var fabEl = document.getElementById('fab');
+            var badgeEl = document.getElementById('badge');
+            var iconChat = document.getElementById('icon-chat');
+            var iconClose = document.getElementById('icon-close');
+            var inputEl = document.getElementById('input');
+            var markTemplate = document.getElementById('bot-mark');
+            var messages = [];
+            var expanded = false;
+            var hasWelcomed = false;
+            var hasOpenedOnce = false;
+            var runtimeLocale = 'en_US';
+            // When status is 'ok', send identity.sessionToken as a Bearer token to your backend only.
+            var identity = { status: 'pending' };
+            var parentOrigin = resolveParentOrigin();
+
+            // The loader passes its origin as #parentOrigin=<origin>; the referrer is a fallback.
+            function originFromHash() {
+                var value = new URLSearchParams(window.location.hash.slice(1)).get('parentOrigin') || '';
+
+                try {
+                    return value && new URL(value).origin === value ? value : '';
+                } catch (err) {
+                    return '';
+                }
+            }
+
+            function resolveParentOrigin() {
+                var origin = originFromHash();
+
+                if (!origin) {
+                    try {
+                        origin = document.referrer ? new URL(document.referrer).origin : '';
+                    } catch (err) {
+                        origin = '';
+                    }
+                }
+
+                if (!origin || origin === 'null') {
+                    return '';
+                }
+
+                if (ALLOWED_PARENT_ORIGINS.length && ALLOWED_PARENT_ORIGINS.indexOf(origin) === -1) {
+                    return '';
+                }
+
+                return origin;
+            }
+
+            function postToParent(message) {
+                if (!parentOrigin || window.parent === window) {
+                    return;
+                }
+
+                window.parent.postMessage(message, parentOrigin);
+            }
+
+            function post(direction, action, data) {
+                postToParent({ type: ENVELOPE, version: '1.0', direction: direction, action: action, data: data || {} });
+            }
+
+            function sendAction(action, payload) {
+                post('aspectToHost', action, payload);
+            }
+
+            function sendToLoader(action) {
+                post('uiToLoader', action);
+            }
+
+            function formatTime() {
+                return new Date().toLocaleTimeString(runtimeLocale.replace('_', '-'), {
+                    hour: 'numeric',
+                    minute: '2-digit',
+                });
+            }
+
+            function applyContext(context) {
+                if (!context || typeof context !== 'object') {
+                    return;
+                }
+
+                if (typeof context.locale === 'string' && context.locale) {
+                    runtimeLocale = context.locale;
+                    document.documentElement.lang = context.locale.replace('_', '-');
+                }
+            }
+
+            function logoMark() {
+                return markTemplate.content.firstElementChild.cloneNode(true);
+            }
+
+            function personIcon() {
+                var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                var circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+
+                svg.setAttribute('viewBox', '0 0 24 24');
+                svg.setAttribute('width', '16');
+                svg.setAttribute('height', '16');
+                svg.setAttribute('aria-hidden', 'true');
+                circle.setAttribute('cx', '12');
+                circle.setAttribute('cy', '9');
+                circle.setAttribute('r', '3');
+                circle.setAttribute('fill', '#8f9090');
+                path.setAttribute('d', 'M6 19c1.2-3 3.3-4.5 6-4.5S16.8 16 18 19');
+                path.setAttribute('fill', 'none');
+                path.setAttribute('stroke', '#8f9090');
+                path.setAttribute('stroke-width', '1.6');
+                path.setAttribute('stroke-linecap', 'round');
+                svg.appendChild(circle);
+                svg.appendChild(path);
+
+                return svg;
+            }
+
+            function appendBubble(role, text, time) {
+                var row = document.createElement('div');
+                var stack = document.createElement('div');
+                var stamp = document.createElement('div');
+
+                row.className = 'bubble-row ' + role;
+                stack.className = 'stack';
+                stamp.className = 'time';
+                stamp.textContent = role === 'user' ? time + ' \u00b7 Read' : time;
+
+                if (role === 'user') {
+                    var pill = document.createElement('div');
+                    var avatar = document.createElement('div');
+
+                    pill.className = 'user-pill';
+                    pill.textContent = text;
+                    avatar.className = 'user-avatar';
+                    avatar.appendChild(personIcon());
+                    stack.appendChild(pill);
+                    stack.appendChild(stamp);
+                    row.appendChild(stack);
+                    row.appendChild(avatar);
+                } else {
+                    var lines = String(text || '').split('\n');
+                    var tile = document.createElement('div');
+                    var title = document.createElement('div');
+
+                    tile.className = 'bot-tile';
+                    title.className = 'bot-title';
+                    title.textContent = lines[0] || '';
+                    tile.appendChild(title);
+
+                    if (lines.slice(1).join('\n').trim()) {
+                        var body = document.createElement('div');
+
+                        body.className = 'bot-body';
+                        body.textContent = lines.slice(1).join('\n').replace(/^\n/, '');
+                        tile.appendChild(body);
+                    }
+
+                    stack.appendChild(tile);
+                    stack.appendChild(stamp);
+                    row.appendChild(logoMark());
+                    row.appendChild(stack);
+                }
+
+                messagesEl.appendChild(row);
+            }
+
+            function renderMessages() {
+                messagesEl.replaceChildren();
+                messages.forEach(function (message) {
+                    appendBubble(message.role, message.text, message.time);
+                });
+                messagesEl.scrollTop = messagesEl.scrollHeight;
+            }
+
+            function showTyping() {
+                var row = document.createElement('div');
+                var tile = document.createElement('div');
+
+                row.id = 'typing';
+                row.className = 'bubble-row bot';
+                tile.className = 'bot-tile typing';
+                tile.append(
+                    document.createElement('span'),
+                    document.createElement('span'),
+                    document.createElement('span'),
+                );
+                row.appendChild(logoMark());
+                row.appendChild(tile);
+                messagesEl.appendChild(row);
+                messagesEl.scrollTop = messagesEl.scrollHeight;
+            }
+
+            function pick(list) {
+                return list[Math.floor(Math.random() * list.length)];
+            }
+
+            function generateResponse(text) {
+                var lower = String(text || '').toLowerCase();
+                var keys = Object.keys(REPLIES);
+
+                for (var i = 0; i < keys.length; i += 1) {
+                    if (keys[i] === 'default') {
+                        continue;
+                    }
+
+                    var group = REPLIES[keys[i]];
+                    var matched = (group.keywords || []).some(function (keyword) {
+                        return lower.indexOf(String(keyword).toLowerCase()) !== -1;
+                    });
+
+                    if (!matched) {
+                        continue;
+                    }
+
+                    if (group.type === 'time') {
+                        return 'The current time is ' + new Date().toLocaleTimeString() + ' \u23F0';
+                    }
+
+                    if (group.type === 'date') {
+                        return 'Today is ' + new Date().toLocaleDateString('en-US', {
+                            weekday: 'long',
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                        }) + ' \u{1F4C5}';
+                    }
+
+                    if (group.messages && group.messages.length) {
+                        return pick(group.messages);
+                    }
+                }
+
+                return pick(REPLIES.default.messages);
+            }
+
+            function sendUserText(text) {
+                messages.push({ role: 'user', text: text, time: formatTime() });
+                renderMessages();
+                showTyping();
+                window.setTimeout(function () {
+                    var typing = document.getElementById('typing');
+
+                    if (typing) {
+                        typing.remove();
+                    }
+
+                    messages.push({
+                        role: 'bot',
+                        text: generateResponse(text),
+                        time: formatTime(),
+                    });
+                    renderMessages();
+                }, 900);
+            }
+
+            function setExpanded(next) {
+                expanded = next;
+                panelEl.hidden = !next;
+                document.body.classList.toggle('collapsed', !next);
+                iconChat.hidden = next;
+                iconClose.hidden = !next;
+                fabEl.setAttribute('aria-label', next ? 'Close chat' : 'Open chat with ChatBot Assistant');
+
+                if (next) {
+                    hasOpenedOnce = true;
+                    badgeEl.hidden = true;
+                } else if (!hasOpenedOnce) {
+                    badgeEl.hidden = false;
+                }
+            }
+
+            function openChat(reason) {
+                setExpanded(true);
+                sendAction('chatbotOpen', { reason: reason || 'user_clicked_fab' });
+
+                if (!hasWelcomed) {
+                    hasWelcomed = true;
+                    messages.push({ role: 'bot', text: welcomeText, time: formatTime() });
+                    renderMessages();
+                }
+
+                window.setTimeout(function () {
+                    if (expanded) {
+                        inputEl.focus();
+                    }
+                }, 200);
+            }
+
+            function closeChat() {
+                setExpanded(false);
+                sendAction('chatbotMinimize', { status: 'user_minimized' });
+            }
+
+            fabEl.addEventListener('click', function () {
+                if (expanded) {
+                    closeChat();
+
+                    return;
+                }
+
+                openChat('user_clicked_fab');
+            });
+
+            document.getElementById('close').addEventListener('click', closeChat);
+
+            document.getElementById('quick-replies').addEventListener('click', function (event) {
+                var button = event.target.closest('button');
+
+                if (!button) {
+                    return;
+                }
+
+                sendUserText(button.textContent.trim());
+            });
+
+            function sendFromInput() {
+                var text = (inputEl.value || '').trim();
+
+                if (!text) {
+                    return;
+                }
+
+                inputEl.value = '';
+                sendUserText(text);
+            }
+
+            document.getElementById('send').addEventListener('click', sendFromInput);
+            inputEl.addEventListener('keydown', function (event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    sendFromInput();
+                }
+            });
+
+            window.addEventListener('message', function (event) {
+                if (!parentOrigin || event.source !== window.parent || event.origin !== parentOrigin) {
+                    return;
+                }
+
+                var message = event.data;
+
+                if (!message || message.type !== ENVELOPE || typeof message.action !== 'string') {
+                    return;
+                }
+
+                var data = message.data && typeof message.data === 'object' ? message.data : {};
+
+                if (message.direction === 'hostToAspect') {
+                    // The host already shrank the frame, so switch to the button without telling it again.
+                    if (message.action === 'chatbotMinimize') {
+                        if (expanded) {
+                            setExpanded(false);
+                        }
+                    } else if (message.action === 'chatbotOpen' || message.action === 'contextUpdate') {
+                        applyContext(data);
+                    }
+
+                    return;
+                }
+
+                if (message.direction !== 'loaderToUi') {
+                    return;
+                }
+
+                if (message.action === 'aspectInit') {
+                    if (data.fiOrigin !== parentOrigin) {
+                        console.error('[support-chat-ui] aspectInit from an unexpected origin');
+
+                        return;
+                    }
+
+                    identity = data.identity || identity;
+                    applyContext(data.context);
+
+                    return;
+                }
+
+                if (message.action === 'identityUpdate') {
+                    identity = data.identity || identity;
+
+                    return;
+                }
+
+                if (message.action === 'messageRejected') {
+                    console.warn('[support-chat-ui] host refused ' + data.action + ': ' + data.reason);
+
+                    if (data.action === 'chatbotOpen' && expanded) {
+                        setExpanded(false);
+                    } else if (data.action === 'chatbotMinimize' && !expanded) {
+                        setExpanded(true);
+                    }
+
+                }
+            });
+
+            if (!parentOrigin) {
+                console.error('[support-chat-ui] fail closed: parent origin unknown or not allowed');
+            }
+
+            sendToLoader('uiReady');
+
+            hasWelcomed = true;
+            messages.push({ role: 'bot', text: welcomeText, time: formatTime() });
+            renderMessages();
+
+            document.querySelectorAll('img').forEach(function (image) {
+                image.addEventListener('error', function () {
+                    image.remove();
+                });
+            });
+        })();
+    </script>
+</body>
+</html>

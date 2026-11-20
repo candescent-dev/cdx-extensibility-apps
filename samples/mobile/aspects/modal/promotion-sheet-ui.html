@@ -1,0 +1,325 @@
+<!doctype html>
+<!--
+  Template - Promotion Sheet partner UI: the child iframe of the aspect (partner origin).
+  REFERENCE ONLY: you host this page yourself. Copy it, change its look, layout and content to follow FDS,
+  and keep only the message contract below. Your copy can change at any time without resubmitting the
+  aspect, as long as it stays on the domain registered in uiUrl.
+  Host this page on YOUR origin (the uiUrl Data Attribute) and add that origin to the aspect's frame-src.
+  It is not part of the SRI-pinned loader, so it can change without a new SRI as long as it stays on
+  the registered origin. Roles, message bus and rules: samples/mobile/aspects/ARCHITECTURE.md.
+
+  It talks only to its parent (the loader, static-loader.js), with the loader's envelope
+  { type:'ASPECT_UI', version:'1.0', direction, action, payload }. The loader passes app requests to the
+  aspect extension, which checks them and is the only piece that talks to the app:
+    to the app     aspectToHost  modalOpen {reason}, modalDismiss {status, actionData?}, navigate {url}
+    from the app   hostToAspect  modalOpen (the app has shown the sheet; context), modalDismiss {cancelled}
+    loader only    uiToLoader    uiReady, identityRefresh
+                   loaderToUi    aspectInit {schemaVersion, aspectType, context, config, identity, shown},
+                                 identityUpdate {identity}, messageRejected {action, reason}
+  Lifecycle: ask with modalOpen once, within the app's window (15 s from when the app starts loading the aspect); the sheet is visible
+  only when the app answers with its own modalOpen (the frequency cap or the screen may say no). A
+  host_immediate modal is shown by the app itself: aspectInit then has shown: true and nothing is asked.
+  Eligibility belongs on your backend: with a partner session, ask it whether to show; never decide
+  from values the browser sends.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Promotion</title>
+    <style>
+      /* Figma: SDK - Extensibility / Aspect mobile / bottom sheet. --accent is the template's Brand colour. */
+      :root {
+        --sans: Inter, -apple-system, system-ui, 'Segoe UI', Roboto, sans-serif;
+        --text-1: #212121;
+        --text-2: #727273;
+        --divider: #e0e0e0;
+        --icon: rgba(0, 0, 0, 0.54);
+        --ring: #5993e8;
+        --accent: #1a6cda;
+      }
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        font-family: var(--sans);
+        color: var(--text-1);
+        background: transparent;
+        -webkit-font-smoothing: antialiased;
+      }
+      button {
+        font-family: inherit;
+      }
+      button:focus-visible {
+        outline: 2px solid var(--ring);
+        outline-offset: 2px;
+      }
+      .sheet {
+        position: relative;
+        box-sizing: border-box;
+        height: 100%;
+        padding-bottom: 50px;
+        background: #fff;
+        border-radius: 20px 20px 0 0;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      .content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        padding: 20px 16px;
+        border-bottom: 1px solid var(--divider);
+      }
+      .close {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        padding: 8px;
+        box-sizing: border-box;
+        border: 0;
+        border-radius: 8px;
+        background: transparent;
+        color: var(--icon);
+        cursor: pointer;
+      }
+      .ico {
+        width: 24px;
+        height: 24px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 1.75;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      h1 {
+        max-width: 288px;
+        font-size: 16px;
+        line-height: 22px;
+        font-weight: 650;
+        letter-spacing: -0.24px;
+        margin: 0;
+      }
+      p {
+        font-size: 14px;
+        line-height: 20px;
+        color: var(--text-2);
+        margin: 0 0 20px;
+      }
+      .actions {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-top: auto;
+        padding: 0 24px;
+      }
+      .primary,
+      .secondary {
+        min-height: 44px;
+        border-radius: 8px;
+        font-size: 15px;
+        line-height: 24px;
+        font-weight: 500;
+        letter-spacing: -0.08px;
+        cursor: pointer;
+      }
+      .primary {
+        border: 0;
+        color: #fff;
+        background: var(--accent);
+      }
+      .secondary {
+        border: 1px solid color-mix(in srgb, var(--accent) 50%, transparent);
+        background: #fff;
+        color: var(--accent);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="sheet" role="dialog" aria-labelledby="title">
+      <div class="content">
+        <h1 id="title">Go paperless</h1>
+        <p id="body">Switch to e-statements.</p>
+        <div class="actions">
+          <button class="primary" id="cta" type="button" hidden>
+            Learn more
+          </button>
+          <button class="secondary" id="later" type="button">No thanks</button>
+        </div>
+      </div>
+      <button class="close" id="close" type="button" aria-label="Close">
+        <svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M18 6 6 18" />
+          <path d="m6 6 12 12" />
+        </svg>
+      </button>
+    </div>
+    <script>
+      (function () {
+        'use strict';
+        var LOG = '[promotion-sheet-ui]';
+        // Production: list the FI origins (https://www.your-bank.com) this UI serves; empty accepts the first.
+        var ALLOWED_HOST_ORIGINS = [];
+        // How long to wait for the identity before asking to open; the loader's window is 13 s from load.
+        var IDENTITY_WAIT_MS = 9000;
+        var OPEN_REASON = 'promo_available';
+
+        var BUS = 'ASPECT_UI';
+        var startedAt = Date.now();
+        var hostOrigin = null;
+        var ctaUrl = '';
+        var identity = { status: 'pending' };
+        var requested = false;
+        var shown = false;
+        var closed = false;
+        var waitTimer = null;
+
+        function byId(id) {
+          return document.getElementById(id);
+        }
+
+        // Before aspectInit the loader's origin is unknown; uiReady carries no data, so '*' is acceptable.
+        function post(direction, action, payload) {
+          window.parent.postMessage(
+            {
+              type: BUS,
+              version: '1.0',
+              direction: direction,
+              action: action,
+              payload: payload || {},
+            },
+            hostOrigin || '*',
+          );
+        }
+        function toHost(action, payload) {
+          post('aspectToHost', action, payload);
+        }
+
+        function applyConfig(c) {
+          if (!c || typeof c !== 'object') return;
+          if (typeof c.title === 'string') byId('title').textContent = c.title;
+          if (typeof c.body === 'string') byId('body').textContent = c.body;
+          if (/^#[0-9a-f]{6}$/i.test(c.accentColor || ''))
+            document.documentElement.style.setProperty(
+              '--accent',
+              c.accentColor,
+            );
+          if (typeof c.ctaUrl === 'string' && c.ctaUrl) {
+            ctaUrl = c.ctaUrl;
+            var cta = byId('cta');
+            if (typeof c.ctaText === 'string') cta.textContent = c.ctaText;
+            cta.hidden = false;
+          }
+        }
+
+        function applyContext(ctx) {
+          if (ctx && typeof ctx.locale === 'string')
+            document.documentElement.lang = ctx.locale;
+        }
+
+        // Content is ready: ask to be shown, once. With identity.status 'ok', this is where you would ask
+        // your backend (Authorization: Bearer identity.sessionToken) whether this user qualifies.
+        function requestOpen() {
+          clearTimeout(waitTimer);
+          if (requested || shown || closed) return;
+          requested = true;
+          toHost('modalOpen', { reason: OPEN_REASON });
+        }
+
+        function dismiss(status) {
+          if (closed || !shown) return;
+          closed = true;
+          toHost('modalDismiss', { status: status });
+        }
+
+        byId('close').addEventListener('click', function () {
+          dismiss('cancelled');
+        });
+        byId('later').addEventListener('click', function () {
+          dismiss('cancelled');
+        });
+        byId('cta').addEventListener('click', function () {
+          if (!shown || closed) return;
+          toHost('navigate', { url: ctaUrl });
+          dismiss('success');
+        });
+
+        window.addEventListener('message', function (event) {
+          if (event.source !== window.parent) return;
+          var d = event.data;
+          if (
+            !d ||
+            typeof d !== 'object' ||
+            d.type !== BUS ||
+            typeof d.action !== 'string'
+          )
+            return;
+          var payload =
+            d.payload && typeof d.payload === 'object' ? d.payload : {};
+
+          if (!hostOrigin) {
+            // The first message must be aspectInit; it fixes the loader's origin for everything after it.
+            if (
+              d.direction !== 'loaderToUi' ||
+              d.action !== 'aspectInit' ||
+              payload.schemaVersion !== 1
+            )
+              return;
+            if (
+              ALLOWED_HOST_ORIGINS.length &&
+              ALLOWED_HOST_ORIGINS.indexOf(event.origin) === -1
+            )
+              return;
+            hostOrigin = event.origin;
+            applyConfig(payload.config);
+            applyContext(payload.context);
+            identity = payload.identity || identity;
+            if (payload.shown === true) {
+              // The app has already shown it (host_immediate): no modalOpen request.
+              shown = true;
+            } else if (identity.status === 'pending') {
+              waitTimer = setTimeout(
+                requestOpen,
+                Math.max(0, IDENTITY_WAIT_MS - (Date.now() - startedAt)),
+              );
+            } else {
+              requestOpen();
+            }
+            return;
+          }
+          if (event.origin !== hostOrigin) return;
+
+          if (d.direction === 'hostToAspect') {
+            // modalOpen: the app has shown the sheet (after our request, or by itself for host_immediate).
+            if (d.action === 'modalOpen') {
+              shown = true;
+              applyContext(payload);
+            }
+            // modalDismiss {cancelled}: the app closed it (scrim tap; also back on Android). Nothing more to send.
+            else if (d.action === 'modalDismiss') closed = true;
+          } else if (d.direction === 'loaderToUi') {
+            if (d.action === 'identityUpdate') {
+              identity = payload.identity || identity;
+              requestOpen();
+            } else if (d.action === 'messageRejected') {
+              console.warn(
+                LOG,
+                'refused',
+                payload.action + ':',
+                payload.reason,
+              );
+            }
+          }
+        });
+
+        post('uiToLoader', 'uiReady');
+      })();
+    </script>
+  </body>
+</html>

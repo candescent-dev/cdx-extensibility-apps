@@ -38,7 +38,8 @@
       "axios": "1.19.0",
       "image-size": "2.0.2",
       "metro>image-size": "1.2.1",
-      "postcss": "8.5.25"
+      "postcss": "8.5.25",
+      "react-devtools-core>shell-quote": "-"
     }
   }
 }

@@ -1,0 +1,594 @@
+<!doctype html>
+<!--
+  Template - Support Chat partner UI: the child iframe of the aspect (partner origin).
+  REFERENCE ONLY: you host this page yourself. Copy it, change its look, layout and content to follow FDS,
+  and keep only the message contract below. Your copy can change at any time without resubmitting the
+  aspect, as long as it stays on the domain registered in uiUrl.
+  Host this page on YOUR origin (the uiUrl Data Attribute) and add that origin to the aspect's frame-src.
+  It is not part of the SRI-pinned loader, so it can change without a new SRI as long as it stays on
+  the registered origin. Roles, message bus and rules: samples/mobile/aspects/ARCHITECTURE.md.
+
+  It talks only to its parent (the loader, static-loader.js), with the loader's envelope
+  { type:'ASPECT_UI', version:'1.0', direction, action, payload }. The loader passes app requests to the
+  aspect extension, which checks them and is the only piece that talks to the app:
+    to the app     aspectToHost  chatbotOpen {reason}, chatbotMinimize {status}, navigate {url}
+    from the app   hostToAspect  chatbotOpen / contextUpdate (context only), chatbotMinimize {host_minimized}
+    loader only    uiToLoader    uiReady, identityRefresh
+                   loaderToUi    aspectInit {schemaVersion, aspectType, context, config, identity},
+                                 identityUpdate {identity}, messageRejected {action, reason}
+  identity = { status: 'ok', sessionToken, expiresAt } | { status: 'pending' | 'none' } |
+             { status: 'failed', reason } (for example session_expired, client_not_authorized, code_timeout).
+  The session token is your own backend's (partner-scoped); this page never sees FI cookies, the
+  authorization code or a Candescent token. Without one it runs as a guest.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Support chat</title>
+    <style>
+      /* Figma: SDK - Extensibility / Aspect mobile / Help chat. --accent is the template's Brand colour
+     (buttons, sent messages); the header uses a lighter tint of it. */
+      :root {
+        --sans:
+          -apple-system, 'SF Pro Text', system-ui, Inter, 'Segoe UI', Roboto,
+          sans-serif;
+        --btn-font:
+          Inter, -apple-system, system-ui, 'Segoe UI', Roboto, sans-serif;
+        --text-1: #212121;
+        --text-2: #727273;
+        --text-3: #8f9090;
+        --stroke-1: #8f9090;
+        --stroke-2: #e9e9e9;
+        --divider: #d9dfe8;
+        --surface-2: #f4f4f4;
+        --icon: rgba(0, 0, 0, 0.54);
+        --ring: #5993e8;
+        --accent: #1a6cda;
+        --accent-light: #5695eb;
+      }
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        font-family: var(--sans);
+        color: var(--text-1);
+        background: transparent;
+        -webkit-font-smoothing: antialiased;
+      }
+      button {
+        font-family: var(--btn-font);
+      }
+      button:focus-visible,
+      input:focus-visible {
+        outline: 2px solid var(--ring);
+        outline-offset: 2px;
+      }
+      .ico {
+        width: 24px;
+        height: 24px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 1.75;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .fab {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+        border: 0;
+        border-radius: 50%;
+        color: #fff;
+        background: var(--accent);
+        cursor: pointer;
+      }
+      .fab .ico {
+        width: 28px;
+        height: 28px;
+      }
+      .panel {
+        display: none;
+        flex-direction: column;
+        height: 100%;
+        background: #fff;
+        border-radius: 20px 20px 0 0;
+        overflow: hidden;
+      }
+      .open .fab {
+        display: none;
+      }
+      .open .panel {
+        display: flex;
+      }
+      .hdr {
+        flex: none;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 60px;
+        padding: 0 16px;
+        box-sizing: border-box;
+        color: #fff;
+        background: var(--accent-light);
+      }
+      .hdr h1 {
+        font-size: 14px;
+        line-height: 20px;
+        font-weight: 400;
+        margin: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .sr {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+      }
+      /* 32 px white circle as drawn; the ::after keeps a 44 px touch target. */
+      .icon {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: none;
+        width: 32px;
+        height: 32px;
+        padding: 0;
+        border: 0;
+        border-radius: 9999px;
+        background: #fff;
+        color: var(--icon);
+        cursor: pointer;
+      }
+      .icon::after {
+        content: '';
+        position: absolute;
+        inset: -6px;
+      }
+      .icon .ico {
+        width: 20px;
+        height: 20px;
+        stroke-width: 2.25;
+      }
+      .log {
+        flex: 1;
+        overflow-y: auto;
+        padding: 12px 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        background: var(--surface-2);
+      }
+      .msg {
+        box-sizing: border-box;
+        overflow-wrap: anywhere;
+      }
+      .bot {
+        align-self: flex-start;
+        width: 280px;
+        max-width: 85%;
+        padding: 10px 14px;
+        background: #fff;
+        border: 1px solid var(--stroke-2);
+        border-radius: 16px 16px 16px 0;
+        color: var(--text-2);
+        font-size: 12px;
+        line-height: 16px;
+      }
+      .me {
+        align-self: flex-end;
+        max-width: 80%;
+        padding: 8px 16px;
+        border-radius: 8px;
+        color: #fff;
+        background: var(--accent);
+        font: 500 14px/24px var(--btn-font);
+        letter-spacing: -0.08px;
+      }
+      .link {
+        flex: none;
+        margin: 0 12px 12px;
+        min-height: 44px;
+        padding: 0 16px;
+        border: 1px solid color-mix(in srgb, var(--accent) 50%, transparent);
+        border-radius: 8px;
+        background: #fafafa;
+        color: var(--text-1);
+        font-size: 15px;
+        line-height: 24px;
+        font-weight: 500;
+        letter-spacing: -0.08px;
+        cursor: pointer;
+      }
+      .bar {
+        flex: none;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        height: 72px;
+        box-sizing: border-box;
+        padding: 12px;
+        border-top: 1px solid var(--divider);
+        background: #fff;
+      }
+      .bar input {
+        flex: 1;
+        min-width: 0;
+        height: 44px;
+        box-sizing: border-box;
+        padding: 10px 16px;
+        border: 1px solid var(--stroke-1);
+        border-radius: 8px;
+        color: var(--text-1);
+        font: 16px/24px var(--sans);
+      }
+      .bar input::placeholder {
+        color: var(--text-3);
+      }
+      .btn {
+        flex: none;
+        height: 40px;
+        padding: 0 16px;
+        border: 0;
+        border-radius: 8px;
+        color: #fff;
+        background: var(--accent);
+        font-size: 14px;
+        line-height: 24px;
+        font-weight: 500;
+        letter-spacing: -0.08px;
+        cursor: pointer;
+      }
+      .btn:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="root" id="root" style="height: 100%">
+      <button class="fab" id="fab" type="button" aria-label="Open chat">
+        <svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />
+        </svg>
+      </button>
+      <div class="panel" id="panel">
+        <div class="hdr">
+          <h1 id="title">Need help?</h1>
+          <span class="sr" id="who">Guest</span>
+          <button
+            class="icon"
+            id="minimize"
+            type="button"
+            aria-label="Minimize chat"
+          >
+            <svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M5 12h14" />
+            </svg>
+          </button>
+        </div>
+        <div class="log" id="log" role="log" aria-live="polite"></div>
+        <button class="link" id="help" type="button" hidden>
+          Visit help center
+        </button>
+        <div class="bar">
+          <input
+            id="input"
+            type="text"
+            placeholder="Type your message here"
+            aria-label="Message"
+          />
+          <button class="btn" id="send" type="button">Send</button>
+        </div>
+      </div>
+    </div>
+    <script>
+      (function () {
+        'use strict';
+        var LOG = '[support-chat-ui]';
+        var API_TIMEOUT_MS = 15000;
+        var MAX_REPLY = 2000;
+        // Production: list the FI origins (https://www.your-bank.com) this UI serves; empty accepts the first
+        // page that sends aspectInit, which any site framing this page could do.
+        var ALLOWED_HOST_ORIGINS = [];
+        // Where chat messages may go. apiUrl arrives from the parent frame, so it is only used when its
+        // origin is listed here; empty allows only this page's own origin. create-aspect adds the apiUrl origin;
+        // add it yourself if you change apiUrl later.
+        var ALLOWED_API_ORIGINS = [];
+        // Refresh the partner session this long before it expires.
+        var REFRESH_MARGIN_MS = 60000;
+
+        var BUS = 'ASPECT_UI';
+        var hostOrigin = null;
+        var config = {
+          title: 'Need help?',
+          greeting: 'Hi! How can we help?',
+          helpUrl: '',
+          apiUrl: '',
+        };
+        var identity = { status: 'pending' };
+        var greeted = false;
+        var pending = false;
+
+        function byId(id) {
+          return document.getElementById(id);
+        }
+        var root = byId('root'),
+          log = byId('log'),
+          input = byId('input'),
+          send = byId('send'),
+          help = byId('help');
+
+        // Before aspectInit the loader's origin is unknown; uiReady carries no data, so '*' is acceptable.
+        function post(direction, action, payload) {
+          window.parent.postMessage(
+            {
+              type: BUS,
+              version: '1.0',
+              direction: direction,
+              action: action,
+              payload: payload || {},
+            },
+            hostOrigin || '*',
+          );
+        }
+        function toHost(action, payload) {
+          post('aspectToHost', action, payload);
+        }
+
+        function addMessage(text, who) {
+          var m = document.createElement('div');
+          m.className = 'msg ' + who;
+          m.textContent = text;
+          log.appendChild(m);
+          log.scrollTop = log.scrollHeight;
+          return m;
+        }
+
+        function applyConfig(c) {
+          if (!c || typeof c !== 'object') return;
+          if (typeof c.title === 'string') {
+            config.title = c.title;
+            byId('title').textContent = c.title;
+          }
+          if (typeof c.greeting === 'string') config.greeting = c.greeting;
+          if (/^#[0-9a-f]{6}$/i.test(c.accentColor || '')) {
+            document.documentElement.style.setProperty(
+              '--accent',
+              c.accentColor,
+            );
+            document.documentElement.style.setProperty(
+              '--accent-light',
+              'color-mix(in srgb, ' + c.accentColor + ' 74%, #fff)',
+            );
+          }
+          if (typeof c.helpUrl === 'string' && c.helpUrl) {
+            config.helpUrl = c.helpUrl;
+            help.hidden = false;
+          }
+          if (typeof c.apiUrl === 'string' && c.apiUrl) {
+            if (apiOriginAllowed(c.apiUrl)) config.apiUrl = c.apiUrl;
+            else
+              console.warn(
+                '[support-chat-ui] apiUrl ignored: its origin is not in ALLOWED_API_ORIGINS',
+              );
+          }
+        }
+
+        function apiOriginAllowed(url) {
+          var origin;
+          try {
+            origin = new URL(url).origin;
+          } catch (e) {
+            return false;
+          }
+          return ALLOWED_API_ORIGINS.length
+            ? ALLOWED_API_ORIGINS.indexOf(origin) !== -1
+            : origin === location.origin;
+        }
+
+        function applyContext(ctx) {
+          if (ctx && typeof ctx.locale === 'string')
+            document.documentElement.lang = ctx.locale;
+        }
+
+        function applyIdentity(next) {
+          if (!next || typeof next.status !== 'string') return;
+          identity = next;
+          byId('who').textContent =
+            identity.status === 'ok'
+              ? 'Signed in'
+              : identity.status === 'pending'
+                ? 'Connecting…'
+                : 'Guest';
+        }
+
+        // The partner session token, asking the loader for a fresh one when it is about to expire.
+        function sessionToken() {
+          if (identity.status !== 'ok') return null;
+          if (Date.now() > identity.expiresAt - REFRESH_MARGIN_MS) {
+            post('uiToLoader', 'identityRefresh');
+            return Date.now() < identity.expiresAt
+              ? identity.sessionToken
+              : null;
+          }
+          return identity.sessionToken;
+        }
+
+        function open(reason) {
+          root.classList.add('open');
+          if (!greeted) {
+            addMessage(config.greeting, 'bot');
+            greeted = true;
+          }
+          if (reason) toHost('chatbotOpen', { reason: reason });
+          input.focus();
+        }
+
+        function minimize(tellHost) {
+          root.classList.remove('open');
+          if (tellHost) toHost('chatbotMinimize', { status: 'user_minimized' });
+        }
+
+        byId('fab').addEventListener('click', function () {
+          open('user_clicked_fab');
+        });
+        byId('minimize').addEventListener('click', function () {
+          minimize(true);
+        });
+        help.addEventListener('click', function () {
+          toHost('navigate', { url: config.helpUrl });
+        });
+
+        // One id per conversation so the backend can keep context; the session token says who the user is.
+        var conversationId =
+          window.crypto && crypto.randomUUID
+            ? crypto.randomUUID()
+            : String(Date.now());
+
+        function askBackend(text) {
+          var controller =
+            typeof AbortController === 'function'
+              ? new AbortController()
+              : null;
+          var timer = setTimeout(function () {
+            if (controller) controller.abort();
+          }, API_TIMEOUT_MS);
+          var headers = { 'Content-Type': 'application/json' };
+          var token = sessionToken();
+          if (token) headers.Authorization = 'Bearer ' + token;
+          return fetch(config.apiUrl, {
+            method: 'POST',
+            headers: headers,
+            credentials: 'omit',
+            body: JSON.stringify({ message: text, sessionId: conversationId }),
+            signal: controller ? controller.signal : undefined,
+          })
+            .then(function (res) {
+              // The backend no longer accepts our session: get a new one for the next message.
+              if (res.status === 401 && token)
+                post('uiToLoader', 'identityRefresh');
+              if (!res.ok) throw new Error('HTTP ' + res.status);
+              return res.json();
+            })
+            .then(function (data) {
+              if (!data || typeof data.reply !== 'string' || !data.reply.trim())
+                throw new Error('no reply');
+              return data.reply.slice(0, MAX_REPLY);
+            })
+            .finally(function () {
+              clearTimeout(timer);
+            });
+        }
+
+        function sendMessage() {
+          var text = input.value.trim().slice(0, 500);
+          if (!text || pending) return;
+          addMessage(text, 'me');
+          input.value = '';
+          if (!config.apiUrl) {
+            setTimeout(function () {
+              addMessage(
+                'Demo mode (no chat backend configured). You said: "' +
+                  text.slice(0, 80) +
+                  '"',
+                'bot',
+              );
+            }, 400);
+            return;
+          }
+          pending = true;
+          send.disabled = true;
+          var typing = addMessage('…', 'bot');
+          askBackend(text)
+            .then(
+              function (reply) {
+                typing.textContent = reply;
+              },
+              function (err) {
+                console.warn(LOG, 'chat backend failed:', err && err.message);
+                typing.textContent =
+                  'Sorry, something went wrong. Please try again.';
+              },
+            )
+            .then(function () {
+              pending = false;
+              send.disabled = false;
+            });
+        }
+        send.addEventListener('click', sendMessage);
+        input.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            sendMessage();
+          }
+        });
+
+        window.addEventListener('message', function (event) {
+          if (event.source !== window.parent) return;
+          var d = event.data;
+          if (
+            !d ||
+            typeof d !== 'object' ||
+            d.type !== BUS ||
+            typeof d.action !== 'string'
+          )
+            return;
+          var payload =
+            d.payload && typeof d.payload === 'object' ? d.payload : {};
+
+          if (!hostOrigin) {
+            // The first message must be aspectInit; it fixes the loader's origin for everything after it.
+            if (
+              d.direction !== 'loaderToUi' ||
+              d.action !== 'aspectInit' ||
+              payload.schemaVersion !== 1
+            )
+              return;
+            if (
+              ALLOWED_HOST_ORIGINS.length &&
+              ALLOWED_HOST_ORIGINS.indexOf(event.origin) === -1
+            )
+              return;
+            if (!ALLOWED_HOST_ORIGINS.length)
+              console.warn(
+                '[support-chat-ui] ALLOWED_HOST_ORIGINS is empty; list your bank origins before going live',
+              );
+            hostOrigin = event.origin;
+            applyConfig(payload.config);
+            applyContext(payload.context);
+            applyIdentity(payload.identity);
+            return;
+          }
+          if (event.origin !== hostOrigin) return;
+
+          if (d.direction === 'hostToAspect') {
+            // The app collapsed the panel (Android back): switch to the button without telling it again.
+            if (d.action === 'chatbotMinimize') minimize(false);
+            // chatbotOpen / contextUpdate from the app carry context only. The app sends chatbotOpen once,
+            // right after the loader loads, while the slot is still the button: it never opens the panel.
+            else applyContext(payload);
+          } else if (d.direction === 'loaderToUi') {
+            if (d.action === 'identityUpdate') applyIdentity(payload.identity);
+            else if (d.action === 'messageRejected')
+              console.warn(
+                LOG,
+                'refused',
+                payload.action + ':',
+                payload.reason,
+              );
+          }
+        });
+
+        post('uiToLoader', 'uiReady');
+      })();
+    </script>
+  </body>
+</html>

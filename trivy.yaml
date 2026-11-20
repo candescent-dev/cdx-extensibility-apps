@@ -1,0 +1,22 @@
+# Trivy config for cdx-extensibility-apps (filesystem / dependency scanning).
+# See https://aquasecurity.github.io/trivy/latest/docs/references/configuration/config-file/
+
+severity:
+  - CRITICAL
+  - HIGH
+
+scan:
+  scanners:
+    - vuln
+  # Skip generated / vendored paths that inflate noise without adding signal.
+  skip-dirs:
+    - node_modules
+    - dist
+    - coverage
+    - .nx
+    - playground/web/node_modules
+    # Template fixtures ship their own lockfiles; scanned separately when published.
+    - templates
+
+vulnerability:
+  ignore-unfixed: true

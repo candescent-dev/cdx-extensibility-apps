@@ -1,0 +1,240 @@
+{
+  "name": "chatbot",
+  "widgetType": "ASPECT",
+  "widgetDescription": "Home chatbot. The host shows the launcher on Home load. Members can open the assistant, chat, and minimize it. Optional OIDC via oidcclientid and redirecturl on the extension script.",
+  "isEnabledWeb": true,
+  "isEnabledMobile": false,
+  "sector": "RETAIL",
+  "properties": [
+    {
+      "propertyName": "ASPECT_TYPE",
+      "propertyType": "TEXT",
+      "propertyLabel": "Aspect Type",
+      "propertyValue": "chatbot",
+      "propertyValueLocale": "",
+      "isRichText": false,
+      "isLocalized": false,
+      "isLocked": false
+    },
+    {
+      "propertyName": "ASPECT_SCRIPT_chatbot_URL",
+      "propertyType": "TEXT",
+      "propertyLabel": "Loader Script URL",
+      "propertyValue": "",
+      "propertyValueLocale": "",
+      "isRichText": false,
+      "isLocalized": false,
+      "isLocked": false
+    },
+    {
+      "propertyName": "ASPECT_SCRIPT_chatbot_SRI",
+      "propertyType": "TEXT",
+      "propertyLabel": "Loader Script SRI",
+      "propertyValue": "",
+      "propertyValueLocale": "",
+      "isRichText": false,
+      "isLocalized": false,
+      "isLocked": false
+    },
+    {
+      "propertyName": "ASPECT_SCRIPT_chatbot_DATA_uiurl",
+      "propertyType": "TEXT",
+      "propertyLabel": "uiurl",
+      "propertyValue": "",
+      "propertyValueLocale": "",
+      "isRichText": false,
+      "isLocalized": false,
+      "isLocked": false
+    },
+    {
+      "propertyName": "ASPECT_SCRIPT_chatbot_DATA_configurl",
+      "propertyType": "TEXT",
+      "propertyLabel": "configurl",
+      "propertyValue": "",
+      "propertyValueLocale": "",
+      "isRichText": false,
+      "isLocalized": false,
+      "isLocked": false
+    },
+    {
+      "propertyName": "ASPECT_SCRIPT_chatbot_DATA_uiorigin",
+      "propertyType": "TEXT",
+      "propertyLabel": "uiorigin",
+      "propertyValue": "",
+      "propertyValueLocale": "",
+      "isRichText": false,
+      "isLocalized": false,
+      "isLocked": false
+    },
+    {
+      "propertyName": "ASPECT_PROPERTY_WEB_STATICLOADERKEY",
+      "propertyType": "TEXT",
+      "propertyLabel": "staticloaderkey",
+      "propertyValue": "chatbot",
+      "propertyValueLocale": "",
+      "isRichText": false,
+      "isLocalized": false,
+      "isLocked": false
+    },
+    {
+      "propertyName": "ASPECT_PROPERTY_WEB_CONFIGTIMEOUTMS",
+      "propertyType": "TEXT",
+      "propertyLabel": "configtimeoutms",
+      "propertyValue": "8000",
+      "propertyValueLocale": "",
+      "isRichText": false,
+      "isLocalized": false,
+      "isLocked": false
+    },
+    {
+      "propertyName": "ASPECT_PROPERTY_WEB_OIDCCLIENTID",
+      "propertyType": "TEXT",
+      "propertyLabel": "oidcclientid",
+      "propertyValue": "",
+      "propertyValueLocale": "",
+      "isRichText": false,
+      "isLocalized": false,
+      "isLocked": false
+    },
+    {
+      "propertyName": "ASPECT_PROPERTY_WEB_REDIRECTURL",
+      "propertyType": "TEXT",
+      "propertyLabel": "redirecturl",
+      "propertyValue": "",
+      "propertyValueLocale": "",
+      "isRichText": false,
+      "isLocalized": false,
+      "isLocked": false
+    },
+    {
+      "propertyName": "ASPECT_PROPERTY_WEB_TOKENPATH",
+      "propertyType": "TEXT",
+      "propertyLabel": "tokenpath",
+      "propertyValue": "/feng-bff/live/v1/aspect/token",
+      "propertyValueLocale": "",
+      "isRichText": false,
+      "isLocalized": false,
+      "isLocked": false
+    },
+    {
+      "propertyName": "ASPECT_PROPERTY_WEB_TOKENTIMEOUTMS",
+      "propertyType": "TEXT",
+      "propertyLabel": "tokentimeoutms",
+      "propertyValue": "5000",
+      "propertyValueLocale": "",
+      "isRichText": false,
+      "isLocalized": false,
+      "isLocked": false
+    },
+    {
+      "propertyName": "ASPECT_PROPERTY_WEB_REDIRECTTIMEOUTMS",
+      "propertyType": "TEXT",
+      "propertyLabel": "redirecttimeoutms",
+      "propertyValue": "5000",
+      "propertyValueLocale": "",
+      "isRichText": false,
+      "isLocalized": false,
+      "isLocked": false
+    },
+    {
+      "propertyName": "ASPECT_PROPERTY_WEB_REFRESHINTERVALMS",
+      "propertyType": "TEXT",
+      "propertyLabel": "refreshintervalms",
+      "propertyValue": "30000",
+      "propertyValueLocale": "",
+      "isRichText": false,
+      "isLocalized": false,
+      "isLocked": false
+    },
+    {
+      "propertyName": "ASPECT_PROPERTY_WEB_CONTENTSECURITYPOLICY",
+      "propertyType": "TEXT",
+      "propertyLabel": "CSP",
+      "propertyValue": "script-src 'self' 'nonce-aspect'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; frame-src 'self'; connect-src 'self'",
+      "propertyValueLocale": "",
+      "isRichText": false,
+      "isLocalized": false,
+      "isLocked": false
+    },
+    {
+      "propertyName": "ASPECT_PROPERTY_WEB_PERMISSIONPOLICY",
+      "propertyType": "TEXT",
+      "propertyLabel": "Permission Policy",
+      "propertyValue": "camera=()",
+      "propertyValueLocale": "",
+      "isRichText": false,
+      "isLocalized": false,
+      "isLocked": false
+    },
+    {
+      "propertyName": "ASPECT_PROPERTY_WEB_SANDBOXDIRECTIVES",
+      "propertyType": "TEXT",
+      "propertyLabel": "Sandbox Directives",
+      "propertyValue": "allow-scripts allow-same-origin",
+      "propertyValueLocale": "",
+      "isRichText": false,
+      "isLocalized": false,
+      "isLocked": false
+    },
+    {
+      "propertyName": "ASPECT_PROPERTY_WEB_PLACEMENTID",
+      "propertyType": "TEXT",
+      "propertyLabel": "Placement Id",
+      "propertyValue": "bottom_right",
+      "propertyValueLocale": "",
+      "isRichText": false,
+      "isLocalized": false,
+      "isLocked": false
+    },
+    {
+      "propertyName": "ASPECT_PROPERTY_WEB_DISPLAYAUTHORITY",
+      "propertyType": "TEXT",
+      "propertyLabel": "Display Authority",
+      "propertyValue": "host_immediate",
+      "propertyValueLocale": "",
+      "isRichText": false,
+      "isLocalized": false,
+      "isLocked": false
+    },
+    {
+      "propertyName": "ASPECT_PROPERTY_WEB_PAGE",
+      "propertyType": "TEXT",
+      "propertyLabel": "Page",
+      "propertyValue": "/app/home",
+      "propertyValueLocale": "",
+      "isRichText": false,
+      "isLocalized": false,
+      "isLocked": false
+    },
+    {
+      "propertyName": "ASPECT_PROPERTY_WEB_MOUNTSTRATEGY",
+      "propertyType": "TEXT",
+      "propertyLabel": "Mount Strategy",
+      "propertyValue": "on_route_match",
+      "propertyValueLocale": "",
+      "isRichText": false,
+      "isLocalized": false,
+      "isLocked": false
+    },
+    {
+      "propertyName": "ASPECT_PROPERTY_WEB_FREQUENCY",
+      "propertyType": "TEXT",
+      "propertyLabel": "Frequency",
+      "propertyValue": "always",
+      "propertyValueLocale": "",
+      "isRichText": false,
+      "isLocalized": false,
+      "isLocked": false
+    },
+    {
+      "propertyName": "ASPECT_PROPERTY_WEB_TRIGGER",
+      "propertyType": "TEXT",
+      "propertyLabel": "Trigger",
+      "propertyValue": "pageLoad",
+      "propertyValueLocale": "",
+      "isRichText": false,
+      "isLocalized": false,
+      "isLocked": false
+    }
+  ]
+}

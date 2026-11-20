@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Card activation banner</title>
+    <style>
+        :root {
+            --banner-font-family: "SF Pro", "SF Pro Text", -apple-system, BlinkMacSystemFont, sans-serif;
+            --banner-title-font-family: "Crimson Pro", Georgia, "Times New Roman", serif;
+            --banner-title-size: 24px;
+            --banner-title-weight: 400;
+            --banner-title-line-height: 32px;
+            --banner-title-color: #1c1c1c;
+            --banner-subtitle-size: 14px;
+            --banner-subtitle-weight: 400;
+            --banner-subtitle-line-height: 20px;
+            --banner-subtitle-color: #8e8e93;
+            --banner-button-size: 14px;
+            --banner-button-weight: 500;
+            --banner-button-line-height: 20px;
+            --banner-accent: #3d6ca8;
+            --banner-bg: #ffffff;
+            --banner-width: 520px;
+        }
+
+        html,
+        body {
+            margin: 0;
+            height: auto;
+            min-height: 0;
+        }
+
+        body {
+            overflow: auto;
+            font-family: var(--banner-font-family);
+            background: var(--banner-bg);
+        }
+
+        .banner {
+            box-sizing: border-box;
+            width: 100%;
+            height: auto;
+            padding: 12px 20px 16px;
+            background: var(--banner-bg);
+            font-family: var(--banner-font-family);
+        }
+
+        .banner[hidden] {
+            display: none;
+        }
+
+        .banner__image {
+            display: block;
+            width: 100%;
+            height: auto;
+            margin-top: 28px;
+            border-radius: 16px;
+        }
+
+        .banner__title {
+            margin: 20px 0 0;
+            font-size: var(--banner-title-size);
+            font-weight: var(--banner-title-weight);
+            line-height: var(--banner-title-line-height);
+            font-family: var(--banner-title-font-family);
+            color: var(--banner-title-color);
+            overflow-wrap: anywhere;
+        }
+
+        .banner__subtitle {
+            margin: 8px 0 0;
+            font-size: var(--banner-subtitle-size);
+            font-weight: var(--banner-subtitle-weight);
+            line-height: var(--banner-subtitle-line-height);
+            font-family: var(--banner-font-family);
+            color: var(--banner-subtitle-color);
+            overflow-wrap: anywhere;
+        }
+
+        .banner__actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        .btn {
+            appearance: none;
+            border-radius: 8px;
+            padding: 10px 18px;
+            font-size: var(--banner-button-size);
+            font-weight: var(--banner-button-weight);
+            line-height: var(--banner-button-line-height);
+            font-family: var(--banner-font-family);
+            cursor: pointer;
+        }
+
+        .btn--primary {
+            border: 0;
+            background: var(--banner-accent);
+            color: #fff;
+        }
+
+        .btn--secondary {
+            border: 1px solid var(--banner-accent);
+            background: #fff;
+            color: var(--banner-accent);
+        }
+
+        .btn--ghost {
+            border: 0;
+            background: transparent;
+            color: var(--banner-accent);
+            padding: 10px 8px;
+        }
+    </style>
+</head>
+<body>
+    <div
+        id="card-activation-banner-root"
+        class="banner"
+        role="region"
+        aria-labelledby="banner-title"
+        hidden
+    >
+        <img
+            id="banner-image"
+            class="banner__image"
+            src="https://dev.dbk.ncr.com/card.png"
+            alt="Card ending in 4582"
+        />
+        <h2 id="banner-title" class="banner__title">Card Activated!</h2>
+        <p id="banner-subtitle" class="banner__subtitle">
+            Your card ending in 4582 is now active and ready to use.
+        </p>
+        <div class="banner__actions">
+            <button type="button" id="btn-redirect" class="btn btn--primary">
+                Set PIN Now
+            </button>
+            <button type="button" id="btn-internal" class="btn btn--secondary">
+                View Card Details
+            </button>
+            <button type="button" id="btn-dismiss" class="btn btn--ghost">
+                No thanks
+            </button>
+        </div>
+    </div>
+    <script>
+        /**
+         * Partner UI for the host_immediate card activation banner (web modal UI).
+         * The host shows it without a modalOpen request (aspectInit config.requestOpen is false).
+         * Markup and styles are in HTML/CSS above.
+         *
+         * Talks only to window.parent (the static loader's document, on the FI origin), with
+         * { type: 'ASPECT_UI', version: '1.0', direction, action, data } (`data`, not `payload`, so the
+         * platform bridge does not also relay these messages to the host):
+         *   'aspectToHost'  out: modalOpen { reason }, modalDismiss { status, actionData? },
+         *                   navigate { url } (manifest names). The aspect extension checks them
+         *                   and sends them to the host.
+         *   'hostToAspect'  in:  modalOpen (runtime context) from the host, forwarded unchanged.
+         *   'uiToLoader'    out: uiReady, identityRefresh, resize
+         *   'loaderToUi'    in:  aspectInit, identityUpdate, messageRejected
+         */
+        (function () {
+            'use strict';
+
+            var ENVELOPE = 'ASPECT_UI';
+            // Before production, list the FI origins allowed to frame this page, e.g. ['https://olb.example-bank.com'].
+            // While empty, any #parentOrigin or referrer origin is trusted, so any page that frames this UI is trusted.
+            var ALLOWED_PARENT_ORIGINS = [];
+            var OPEN_REASON = 'user_qualified_for_offer';
+            var LOG_PREFIX = '[card-activation-banner-ui]';
+            var ROOT_ELEMENT_ID = 'card-activation-banner-root';
+
+            var WIDGET_DEFAULTS = {
+                title: 'Card Activated!',
+                subtitle:
+                    'Your card ending in 4582 is now active and ready to use.',
+                noThanksLabel: 'No thanks',
+                redirectLabel: 'Set PIN Now',
+                internalNavLabel: 'View Card Details',
+                bannerWidth: '520px',
+                bannerHeight: 'auto',
+                fontFamily:
+                    '"SF Pro", "SF Pro Text", -apple-system, BlinkMacSystemFont, sans-serif',
+                titleFontFamily:
+                    '"Crimson Pro", Georgia, "Times New Roman", serif',
+                titleFontSize: '24px',
+                titleFontWeight: '400',
+                titleLineHeight: '32px',
+                titleColor: '#1c1c1c',
+                subtitleFontSize: '14px',
+                subtitleFontWeight: '400',
+                subtitleLineHeight: '20px',
+                subtitleColor: '#8e8e93',
+                buttonFontSize: '14px',
+                buttonFontWeight: '500',
+                buttonLineHeight: '20px',
+                accentColor: '#3d6ca8',
+                backgroundColor: '#ffffff',
+                imageAlt: 'Card ending in 4582',
+                imageSrc: 'https://dev.dbk.ncr.com/card.png',
+            };
+
+            var redirectUrl = '';
+            var internalNavigateUrl = '';
+            var widget = Object.assign({}, WIDGET_DEFAULTS);
+            var configuredBannerWidth = '';
+            var revealed = false;
+            var resizeObserverWired = false;
+            var initialized = false;
+            var openRequested = false;
+            var dismissed = false;
+            // When status is 'ok', send identity.sessionToken as a Bearer token to your backend only.
+            var identity = { status: 'pending' };
+            var parentOrigin = resolveParentOrigin();
+
+            var rootEl = document.getElementById(ROOT_ELEMENT_ID);
+            var titleEl = document.getElementById('banner-title');
+            var subtitleEl = document.getElementById('banner-subtitle');
+            var imageEl = document.getElementById('banner-image');
+            var btnRedirect = document.getElementById('btn-redirect');
+            var btnInternal = document.getElementById('btn-internal');
+            var btnDismiss = document.getElementById('btn-dismiss');
+
+            // The loader passes its origin as #parentOrigin=<origin>; the referrer is a fallback.
+            function originFromHash() {
+                var value =
+                    new URLSearchParams(window.location.hash.slice(1)).get(
+                        'parentOrigin',
+                    ) || '';
+
+                try {
+                    return value && new URL(value).origin === value
+                        ? value
+                        : '';
+                } catch (err) {
+                    return '';
+                }
+            }
+
+            function resolveParentOrigin() {
+                var origin = originFromHash();
+
+                if (!origin) {
+                    try {
+                        origin = document.referrer
+                            ? new URL(document.referrer).origin
+                            : '';
+                    } catch (err) {
+                        origin = '';
+                    }
+                }
+
+                if (!origin || origin === 'null') {
+                    return '';
+                }
+
+                if (
+                    ALLOWED_PARENT_ORIGINS.length &&
+                    ALLOWED_PARENT_ORIGINS.indexOf(origin) === -1
+                ) {
+                    return '';
+                }
+
+                return origin;
+            }
+
+            function postToParent(msg) {
+                if (!parentOrigin || window.parent === window) {
+                    return;
+                }
+
+                window.parent.postMessage(msg, parentOrigin);
+            }
+
+            function post(direction, action, data) {
+                postToParent({
+                    type: ENVELOPE,
+                    version: '1.0',
+                    direction: direction,
+                    action: action,
+                    data: data || {},
+                });
+            }
+
+            function sendAction(action, payload) {
+                post('aspectToHost', action, payload);
+            }
+
+            function sendToLoader(action, payload) {
+                post('uiToLoader', action, payload);
+            }
+
+            function notifyResize(width, height) {
+                sendToLoader('resize', { width: width, height: height });
+            }
+
+            function isHttpsUrl(value) {
+                try {
+                    return new URL(value).protocol === 'https:';
+                } catch (err) {
+                    return false;
+                }
+            }
+
+            function setRootVar(name, value) {
+                if (value != null && value !== '') {
+                    document.documentElement.style.setProperty(name, value);
+                }
+            }
+
+            function applyWidgetToDom() {
+                if (titleEl) {
+                    titleEl.textContent = widget.title;
+                }
+
+                if (subtitleEl) {
+                    subtitleEl.textContent = widget.subtitle;
+                }
+
+                if (btnRedirect) {
+                    btnRedirect.textContent = widget.redirectLabel;
+                }
+
+                if (btnInternal) {
+                    btnInternal.textContent = widget.internalNavLabel;
+                }
+
+                if (btnDismiss) {
+                    btnDismiss.textContent = widget.noThanksLabel;
+                }
+
+                if (imageEl) {
+                    imageEl.src = isHttpsUrl(widget.imageSrc)
+                        ? widget.imageSrc
+                        : WIDGET_DEFAULTS.imageSrc;
+                    imageEl.alt = String(widget.imageAlt || '');
+                }
+
+                if (btnRedirect) {
+                    btnRedirect.hidden = !redirectUrl;
+                }
+
+                if (btnInternal) {
+                    btnInternal.hidden = !internalNavigateUrl;
+                }
+
+                setRootVar('--banner-font-family', widget.fontFamily);
+                setRootVar('--banner-title-font-family', widget.titleFontFamily);
+                setRootVar('--banner-title-size', widget.titleFontSize);
+                setRootVar('--banner-title-weight', widget.titleFontWeight);
+                setRootVar('--banner-title-line-height', widget.titleLineHeight);
+                setRootVar('--banner-title-color', widget.titleColor);
+                setRootVar('--banner-subtitle-size', widget.subtitleFontSize);
+                setRootVar(
+                    '--banner-subtitle-weight',
+                    widget.subtitleFontWeight,
+                );
+                setRootVar(
+                    '--banner-subtitle-line-height',
+                    widget.subtitleLineHeight,
+                );
+                setRootVar('--banner-subtitle-color', widget.subtitleColor);
+                setRootVar('--banner-button-size', widget.buttonFontSize);
+                setRootVar('--banner-button-weight', widget.buttonFontWeight);
+                setRootVar(
+                    '--banner-button-line-height',
+                    widget.buttonLineHeight,
+                );
+                setRootVar('--banner-accent', widget.accentColor);
+                setRootVar('--banner-bg', widget.backgroundColor);
+                setRootVar('--banner-width', widget.bannerWidth);
+            }
+
+            function normalizeWidgetConfig(raw) {
+                if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+                    return {};
+                }
+
+                return raw;
+            }
+
+            function applyBannerConfig(payload) {
+                if (!payload || typeof payload !== 'object') {
+                    return;
+                }
+
+                if (
+                    typeof payload.redirectUrl === 'string' &&
+                    isHttpsUrl(payload.redirectUrl.trim())
+                ) {
+                    redirectUrl = payload.redirectUrl.trim();
+                }
+
+                if (
+                    typeof payload.internalNavigateUrl === 'string' &&
+                    payload.internalNavigateUrl.trim().indexOf('/app/') === 0
+                ) {
+                    internalNavigateUrl = payload.internalNavigateUrl.trim();
+                }
+
+                if (typeof payload.bannerWidth === 'string' && payload.bannerWidth.trim()) {
+                    configuredBannerWidth = payload.bannerWidth.trim();
+                }
+
+                if (typeof payload.bannerHeight === 'string' && payload.bannerHeight.trim()) {
+                    widget.bannerHeight = payload.bannerHeight.trim();
+                }
+
+                widget = Object.assign(
+                    {},
+                    WIDGET_DEFAULTS,
+                    normalizeWidgetConfig(payload.widget),
+                );
+
+                if (configuredBannerWidth) {
+                    widget.bannerWidth = configuredBannerWidth;
+                }
+
+                applyWidgetToDom();
+            }
+
+            function onNoThanks() {
+                if (dismissed) {
+                    return;
+                }
+
+                dismissed = true;
+                sendAction('modalDismiss', {
+                    status: 'cancelled',
+                    actionData: { intent: 'no_thanks' },
+                });
+            }
+
+            // The host opens external https links in a new tab; the UI never opens them itself.
+            function onRedirect() {
+                if (dismissed || !redirectUrl) {
+                    return;
+                }
+
+                sendAction('navigate', { url: redirectUrl });
+            }
+
+            function onInternalNavigate() {
+                if (dismissed || !internalNavigateUrl) {
+                    return;
+                }
+
+                sendAction('navigate', { url: internalNavigateUrl });
+            }
+
+            // partner_delegated: one modalOpen, never after a dismiss, within the host's 15 s window.
+            function requestOpenWhenEligible(config) {
+                if (!config.requestOpen || openRequested) {
+                    return;
+                }
+
+                openRequested = true;
+
+                window.setTimeout(function onEligibilityChecked() {
+                    if (dismissed || config.eligibilityAllow === false) {
+                        return;
+                    }
+
+                    sendAction('modalOpen', { reason: OPEN_REASON });
+                }, Number(config.eligibilityDelayMs) || 0);
+            }
+
+            function resolveBannerWidth() {
+                if (configuredBannerWidth) {
+                    return configuredBannerWidth;
+                }
+
+                var configured = String(widget.bannerWidth || '520px').trim();
+
+                if (!configured || configured === '100%') {
+                    return '520px';
+                }
+
+                return configured;
+            }
+
+            function resizeHostFrameToContent() {
+                if (!rootEl || rootEl.hidden) {
+                    return;
+                }
+
+                var width = resolveBannerWidth();
+                var configuredHeight = String(widget.bannerHeight || 'auto')
+                    .trim()
+                    .toLowerCase();
+
+                if (configuredHeight && configuredHeight !== 'auto') {
+                    notifyResize(width, widget.bannerHeight);
+
+                    return;
+                }
+
+                rootEl.style.minHeight = '0';
+                rootEl.style.height = 'auto';
+
+                var measured = Math.ceil(rootEl.scrollHeight);
+
+                if (measured > 0) {
+                    notifyResize(width, measured + 'px');
+                }
+            }
+
+            function scheduleResizeToContent() {
+                resizeHostFrameToContent();
+                window.requestAnimationFrame(resizeHostFrameToContent);
+                [50, 150, 300].forEach(function schedule(delay) {
+                    window.setTimeout(resizeHostFrameToContent, delay);
+                });
+            }
+
+            function wireResizeObserver() {
+                if (resizeObserverWired || !rootEl) {
+                    return;
+                }
+
+                resizeObserverWired = true;
+
+                if (imageEl && !imageEl.complete) {
+                    imageEl.addEventListener('load', scheduleResizeToContent, {
+                        once: true,
+                    });
+                }
+
+                if (typeof ResizeObserver === 'function') {
+                    new ResizeObserver(scheduleResizeToContent).observe(rootEl);
+                }
+            }
+
+            function revealBanner() {
+                if (revealed) {
+                    scheduleResizeToContent();
+
+                    return;
+                }
+
+                revealed = true;
+
+                if (rootEl) {
+                    rootEl.hidden = false;
+                }
+
+                wireResizeObserver();
+                scheduleResizeToContent();
+
+                console.log(LOG_PREFIX + ' rendered; visible once the host sends modalOpen');
+            }
+
+            function applyModalOpenContext(payload) {
+                if (!payload || typeof payload !== 'object') {
+                    return;
+                }
+
+                if (typeof payload.locale === 'string' && payload.locale) {
+                    document.documentElement.lang = payload.locale.replace('_', '-');
+                }
+
+                scheduleResizeToContent();
+            }
+
+            if (btnDismiss) {
+                btnDismiss.addEventListener('click', onNoThanks);
+            }
+
+            if (btnRedirect) {
+                btnRedirect.addEventListener('click', onRedirect);
+            }
+
+            if (btnInternal) {
+                btnInternal.addEventListener('click', onInternalNavigate);
+            }
+
+            window.addEventListener('message', function onLoaderMessage(event) {
+                if (
+                    !parentOrigin ||
+                    event.source !== window.parent ||
+                    event.origin !== parentOrigin
+                ) {
+                    return;
+                }
+
+                var msg = event.data;
+
+                if (
+                    !msg ||
+                    msg.type !== ENVELOPE ||
+                    typeof msg.action !== 'string'
+                ) {
+                    return;
+                }
+
+                var data =
+                    msg.data && typeof msg.data === 'object'
+                        ? msg.data
+                        : {};
+
+                if (msg.direction === 'hostToAspect') {
+                    // Each host modalOpen is a fresh display (frequency always re-shows after a dismiss).
+                    if (msg.action === 'modalOpen') {
+                        dismissed = false;
+                        applyModalOpenContext(data);
+                    }
+
+                    return;
+                }
+
+                if (msg.direction !== 'loaderToUi') {
+                    return;
+                }
+
+                if (msg.action === 'aspectInit' && !initialized) {
+                    if (data.fiOrigin !== parentOrigin) {
+                        console.error(
+                            LOG_PREFIX + ' aspectInit from an unexpected origin',
+                        );
+
+                        return;
+                    }
+
+                    initialized = true;
+                    identity = data.identity || identity;
+                    applyBannerConfig(data.config);
+                    applyModalOpenContext(data.context);
+                    revealBanner();
+                    requestOpenWhenEligible(data.config || {});
+
+                    return;
+                }
+
+                if (msg.action === 'identityUpdate') {
+                    identity = data.identity || identity;
+
+                    return;
+                }
+
+                if (msg.action === 'messageRejected') {
+                    console.warn(
+                        LOG_PREFIX +
+                            ' host refused ' +
+                            data.action +
+                            ': ' +
+                            data.reason,
+                    );
+
+                    // A refused dismiss leaves the banner usable so the user can try again.
+                    if (data.action === 'modalDismiss') {
+                        dismissed = false;
+                    }
+                }
+            });
+
+            if (!parentOrigin) {
+                console.error(
+                    LOG_PREFIX +
+                        ' fail closed: parent origin unknown or not allowed',
+                );
+            }
+
+            sendToLoader('uiReady');
+        })();
+    </script>
+</body>
+</html>

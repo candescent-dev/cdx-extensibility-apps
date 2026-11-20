@@ -233,6 +233,6 @@ Open Docker Desktop and wait for the whale icon in the menu bar to stop animatin
 ## Related
 
 - [samples/web/README.md](../../samples/web/README.md) — building and serving web widgets
-- [samples/web/aspects/README.md](../../samples/web/aspects/README.md) — sample JavaScript aspects
+- [samples/web/aspects/README.md](../../samples/web/aspects/README.md) — web aspect samples (chatbot, modal)
 - [GHCR package page](https://github.com/orgs/candescent-dev/packages/container/package/olb-playground) — image versions and tags
 - [docker-compose.yml](./docker-compose.yml) — compose file in this folder

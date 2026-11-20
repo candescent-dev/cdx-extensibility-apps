@@ -11,7 +11,15 @@
  *     `pnpm install` may run — ensure the FI clone has registry auth in its root
  *     `.npmrc` (or `~/.npmrc`) for `@cdx-extensions/*` if private packages apply.
  *     Root lockfile sync prefers `pnpm install --lockfile-only` before a full install.
- *   - web / aspect: no validation step
+ *   - mobile V2 aspect: before any git step, asks for missing values, takes the SRI from the hosted
+ *     loader, runs every mobile check (errors stop the submit) and asks for confirmation. Only the
+ *     aspect extension is committed, as aspects/mobile/<name>/<name>.js, and the PR body carries the
+ *     submission metadata ("Metadata:\n{...}") that the backend parses.
+ *   - web aspect: before any git step, asks for missing values, takes the SRI from the hosted
+ *     loader, runs the web checks (errors stop the submit) and asks for confirmation. Only the
+ *     bootstrap is committed, as aspects/web/<name>/<name>.js, and the PR body carries the
+ *     submission metadata ("Metadata:\n{...}") that the backend parses.
+ *   - web widget: no validation step
  *
  * Only the synced project path is committed (not `.nx/cache`, `dist`, etc.).
  * Root `pnpm-lock.yaml` is staged when mobile validation updates it.
@@ -21,14 +29,13 @@
  *
  * Run from repository root:
  *   node tools/scripts/submit-to-fi-repo.js
+ *   pnpm run submit-to-fi -- --project <name> [--fi-url <url>] [--local-path <dir>] [--loader-url <url>] [--yes] [--accept-hosted]
  */
 /* eslint-disable no-console */
 
 const { spawnSync } = require('child_process');
 const fsp = require('fs/promises');
 const path = require('path');
-const readline = require('readline/promises');
-const { stdin, stdout } = require('process');
 
 const ROOT = path.resolve(__dirname, '../..');
 
@@ -36,7 +43,8 @@ const PATHS = {
   web: ['widgets/web', 'samples/web/widgets'],
   'mobile-widget': ['widgets/mobile', 'samples/mobile/widgets'],
   'mobile-feature': ['features/mobile', 'samples/mobile/feature'],
-  aspect: ['samples/web/aspects'],
+  'web-aspect': ['aspects/web', 'samples/web/aspects'],
+  'mobile-aspect': ['aspects/mobile', 'samples/mobile/aspects'],
 };
 
 const EXCLUDE = new Set(['node_modules', 'dist', '.nx', 'coverage', '.expo']);
@@ -54,6 +62,9 @@ function parseArgs(argv) {
     else if (flag === '--local-path') args.localPath = argv[++i];
     else if (flag === '--project') args.project = argv[++i];
     else if (flag === '--new-pr') args.newPr = true;
+    else if (flag === '--loader-url') args.loaderUrl = argv[++i];
+    else if (flag === '--yes') args.yes = true;
+    else if (flag === '--accept-hosted') args.acceptHosted = true;
   }
   return args;
 }
@@ -69,10 +80,33 @@ function stripSurroundingQuotes(value) {
   return trimmed;
 }
 
-async function ask(rl, question, defaultValue) {
-  const hint = defaultValue ? ` [${defaultValue}]` : '';
-  const answer = stripSurroundingQuotes(await rl.question(`${question}${hint}: `));
+/** Asks one question through the shared prompter (tools/scripts/prompt.mjs). */
+async function ask(rl, question, defaultValue, error) {
+  const answer = stripSurroundingQuotes(
+    await rl.ask(question, defaultValue || '', error),
+  );
   return answer || defaultValue || '';
+}
+
+/**
+ * Uses a flag value when given (an invalid one stops the run), otherwise asks until the answer is
+ * valid, printing why the last one was not. problem(value) returns an error string or null.
+ */
+async function askUntilValid(rl, given, question, defaultValue, problem) {
+  if (given) {
+    const error = await problem(given);
+    if (error) throw new Error(error);
+    return given;
+  }
+  let error;
+  for (;;) {
+    const value = await ask(rl, question, defaultValue, error);
+    error = await problem(value);
+    if (!error) {
+      rl.settle();
+      return value;
+    }
+  }
 }
 
 async function exists(p) {
@@ -89,7 +123,11 @@ function pnpmCommand() {
 }
 
 function runProcess(cmd, args, cwd) {
-  console.log(`> ${cmd} ${args.join(' ')}`);
+  // Long arguments (the PR body) are shortened in the log only.
+  const shown = args.map((a) =>
+    a.length > 120 ? `${a.slice(0, 60)}… (${a.length} characters)` : a,
+  );
+  console.log(`> ${cmd} ${shown.join(' ')}`);
   const shell =
     process.platform === 'win32' && (cmd === 'pnpm' || cmd === 'npx');
   const result = spawnSync(cmd, args, { cwd, stdio: 'inherit', shell });
@@ -107,7 +145,7 @@ function assertSafePathSegment(name) {
     name.includes('\\') ||
     name.includes('\0')
   ) {
-    throw new Error(`Invalid feature name: ${name}`);
+    throw new Error(`Invalid name: ${name}`);
   }
 }
 
@@ -181,30 +219,26 @@ function findOpenPrsForProject(repoPath, project) {
     }));
 }
 
-async function pickOpenPr(rl, prs, project) {
+async function pickOpenPr(rl, prs, project, { noPrompt = false } = {}) {
   if (prs.length === 1) {
     return prs[0];
   }
-
-  console.log(`\nMultiple open PRs found for ${project}:\n`);
-  prs.forEach((pr, index) => {
-    console.log(`  ${index + 1}. PR #${pr.number} — ${pr.headRefName}`);
-    console.log(`     ${pr.title}`);
-    console.log(`     ${pr.url}\n`);
-  });
-  console.log('  0. Create new PR instead\n');
-
-  const answer = await ask(rl, 'Which PR to update?', '1');
-  if (answer === '0') {
-    return null;
+  if (noPrompt) {
+    throw new Error(
+      `Multiple open PRs for ${project}: ${prs
+        .map((pr) => `#${pr.number}`)
+        .join(', ')}. Pass --new-pr, or run without --yes to pick.`,
+    );
   }
-
-  const choice = Number(answer);
-  if (!Number.isInteger(choice) || choice < 1 || choice > prs.length) {
-    throw new Error(`Invalid selection: ${answer}`);
-  }
-
-  return prs[choice - 1];
+  rl.log(`\nOpen PRs for ${project}:`);
+  const choice = await rl.choose('Which PR to update?', [
+    ...prs.map((pr) => ({
+      label: `PR #${pr.number} (${pr.branch})`,
+      hint: pr.title,
+    })),
+    { label: 'Create a new PR instead' },
+  ]);
+  return choice < prs.length ? prs[choice] : null;
 }
 
 function repoName(url) {
@@ -254,7 +288,7 @@ async function resolveLocalRepo(targetUrl, userPath) {
     if (entries.length > 0 && !(await isGitRepo(clonePath))) {
       throw new Error(
         `Folder exists but is not a git repo: ${clonePath}\n` +
-        `Use the default path or an empty folder for the FI repo clone.`,
+          `Use the default path or an empty folder for the FI repo clone.`,
       );
     }
   }
@@ -311,15 +345,58 @@ function assertWithinRoot(relPath) {
 async function findSource(project, type) {
   assertSafePathSegment(project);
 
-  if (type === 'aspect') {
-    const file = project.endsWith('.js') ? project : `${project}.js`;
-    for (const base of PATHS.aspect) {
-      const rel = path.join(base, file);
-      assertWithinRoot(rel);
-      if (await exists(path.join(ROOT, rel)))
-        return { rel, isFile: true, type };
+  if (type === 'web-aspect') {
+    const found = [];
+    for (const base of PATHS['web-aspect']) {
+      const dir = path.join(base, project);
+      assertWithinRoot(dir);
+      if (await exists(path.join(ROOT, dir, 'metadata.json'))) {
+        const bootstrapJs = path.join(ROOT, dir, `${project}.js`);
+        const extensionJs = path.join(ROOT, dir, 'aspect-extension.js');
+        const bootstrapName = (await exists(extensionJs))
+          ? 'aspect-extension.js'
+          : (await exists(bootstrapJs))
+            ? `${project}.js`
+            : null;
+        if (!bootstrapName) continue;
+        found.push({
+          rel: path.posix.join('aspects/web', project, `${project}.js`),
+          srcRel: path.join(dir, bootstrapName),
+          dir,
+          isFile: true,
+          type,
+        });
+      }
     }
-    return null;
+    return found;
+  }
+
+  if (type === 'mobile-aspect') {
+    // Collect every root: the same name in aspects/mobile and samples/mobile/aspects must be picked.
+    const found = [];
+    for (const base of PATHS['mobile-aspect']) {
+      const dir = path.join(base, project);
+      assertWithinRoot(dir);
+      if (await exists(path.join(ROOT, dir, 'metadata.json'))) {
+        // Source is the aspect folder here; only the aspect extension lands in the FI repo, as
+        // <name>.js. It is aspect-extension.js in the folder (<name>.js in aspects made earlier).
+        // A folder with neither is not an aspect to submit, as for web aspects.
+        const ext = (await exists(path.join(ROOT, dir, 'aspect-extension.js')))
+          ? 'aspect-extension.js'
+          : (await exists(path.join(ROOT, dir, `${project}.js`)))
+            ? `${project}.js`
+            : null;
+        if (!ext) continue;
+        found.push({
+          rel: path.posix.join('aspects/mobile', project, `${project}.js`),
+          srcRel: path.join(dir, ext),
+          dir,
+          isFile: true,
+          type,
+        });
+      }
+    }
+    return found;
   }
 
   for (const base of PATHS[type]) {
@@ -330,30 +407,93 @@ async function findSource(project, type) {
   return null;
 }
 
-async function detectSource(project, rl) {
+async function detectSource(project, rl, { noPrompt = false } = {}) {
   const matches = [];
   for (const type of Object.keys(PATHS)) {
     const source = await findSource(project, type);
-    if (source) matches.push(source);
+    if (Array.isArray(source)) matches.push(...source);
+    else if (source) matches.push(source);
   }
   if (matches.length === 0) return null;
   if (matches.length === 1) return matches[0];
+  // Your own folder (aspects/, widgets/, features/) wins over a sample with the same name.
+  const own = matches.filter(
+    (m) => !(m.dir ?? m.rel).split(/[\\/]/).includes('samples'),
+  );
+  if (own.length === 1) {
+    console.log(
+      `Using ${own[0].dir ?? own[0].rel} (a sample with the same name is ignored).`,
+    );
+    return own[0];
+  }
+  if (noPrompt)
+    throw new Error(
+      `"${project}" matches ${matches
+        .map((m) => m.dir ?? m.rel)
+        .join(', ')}. Rename one, or run without --yes to pick.`,
+    );
   return pickSource(rl, matches, project);
 }
 
 async function pickSource(rl, matches, project) {
-  console.log(`\nMultiple matches found for "${project}":\n`);
-  matches.forEach((source, index) => {
-    console.log(`  ${index + 1}. ${source.type} — ${source.rel}`);
-  });
+  rl.log(`\nMore than one "${project}" found:`);
+  const choice = await rl.choose(
+    'Which one to submit?',
+    matches.map((source) => ({
+      label: source.dir ?? source.rel,
+      hint: source.type,
+    })),
+  );
+  return matches[choice];
+}
 
-  const answer = await ask(rl, 'Which one to submit?', '1');
-  const choice = Number(answer);
-  if (!Number.isInteger(choice) || choice < 1 || choice > matches.length) {
-    throw new Error(`Invalid selection: ${answer}`);
+/** Your own projects (not the samples), for the submit menu: [{ name, type, dir }]. */
+async function localProjects() {
+  const roots = [
+    ['aspects/web', 'web aspect'],
+    ['aspects/mobile', 'mobile aspect'],
+    ['widgets/web', 'web widget'],
+    ['widgets/mobile', 'mobile widget'],
+    ['features/mobile', 'mobile feature'],
+  ];
+  const out = [];
+  for (const [root, type] of roots) {
+    let entries = [];
+    try {
+      entries = await fsp.readdir(path.join(ROOT, root), {
+        withFileTypes: true,
+      });
+    } catch {
+      continue;
+    }
+    for (const e of entries) {
+      if (!e.isDirectory() || e.name.startsWith('.')) continue;
+      if (
+        (root === 'aspects/mobile' || root === 'aspects/web') &&
+        !(await exists(path.join(ROOT, root, e.name, 'metadata.json')))
+      )
+        continue;
+      out.push({ name: e.name, type, dir: path.posix.join(root, e.name) });
+    }
   }
+  return out;
+}
 
-  return matches[choice - 1];
+// The last FI repo and clone path, so the next submit can reuse them (gitignored, this machine only).
+const SAVED_PATH = path.join(ROOT, '.submit-to-fi.local.json');
+async function readSaved() {
+  try {
+    return JSON.parse(await fsp.readFile(SAVED_PATH, 'utf8'));
+  } catch {
+    return {};
+  }
+}
+async function writeSaved(value) {
+  try {
+    await fsp.writeFile(SAVED_PATH, `${JSON.stringify(value, null, 2)}\n`);
+  } catch {
+    /* not saved: the next submit asks again */
+  }
 }
 
 async function copyDir(src, dest) {
@@ -385,8 +525,64 @@ async function countSyncableFiles(absPath, isFile) {
   return count;
 }
 
-async function buildPrDescription() {
+async function buildPrDescription(aspect) {
+  // The backend parses the metadata block; nothing may follow the JSON.
+  if (aspect) return aspect.body;
   return 'Submitted from CDX extensibility template.';
+}
+
+async function prepareMobileAspect(source, cli, rl) {
+  const { prepareMobileAspect: prepare } =
+    await import('../../playground/aspects-mobile/prepare-submit.mjs');
+  console.log('\nChecking the mobile aspect before touching the FI repo...\n');
+  const aspect = await prepare({
+    dir: path.join(ROOT, source.dir),
+    loaderUrl: cli.loaderUrl,
+    acceptHostedDiff: cli.acceptHosted,
+    // Written only once the pull request is confirmed, so cancelling leaves the folder as it was.
+    persist: false,
+    ask: cli.yes
+      ? undefined
+      : (question, def, error) => ask(rl, question, def, error),
+    log: (message) => rl.log(message),
+  });
+  console.log(
+    `\nReady: ${source.rel} with metadata for "${aspect.metadata.name}".`,
+  );
+  if (!cli.yes) {
+    if (!(await rl.confirm('Raise or update the FI repo pull request now?')))
+      throw new Error('Cancelled. Nothing was pushed.');
+  }
+  aspect.persist();
+  // Submit the extension the checks ran on, whatever its file name.
+  source.srcRel = path.relative(ROOT, aspect.bootstrapPath);
+  return aspect;
+}
+
+async function prepareWebAspect(source, cli, rl) {
+  const { prepareWebAspect: prepare } = await import(
+    './lib/prepare-web-aspect-submit.mjs'
+  );
+  console.log('\nChecking the web aspect before touching the FI repo...\n');
+  const aspect = await prepare({
+    dir: path.join(ROOT, source.dir),
+    loaderUrl: cli.loaderUrl,
+    acceptHostedDiff: cli.acceptHosted,
+    persist: false,
+    ask: cli.yes
+      ? undefined
+      : (question, def, error) => ask(rl, question, def, error),
+    log: (message) => rl.log(message),
+  });
+  console.log(
+    `\nReady: ${source.rel} with metadata for "${aspect.metadata.name}".`,
+  );
+  if (!cli.yes) {
+    if (!(await rl.confirm('Raise or update the FI repo pull request now?')))
+      throw new Error('Cancelled. Nothing was pushed.');
+  }
+  aspect.persist();
+  return aspect;
 }
 
 function isTracked(repoPath, rel) {
@@ -464,6 +660,16 @@ async function validateFiRepoBuild(repoPath, source) {
     return;
   }
 
+  if (source.type === 'mobile-aspect') {
+    console.log('Mobile aspect was checked before the FI repo was touched.');
+    return;
+  }
+
+  if (source.type === 'web-aspect') {
+    console.log('Web aspect was checked before the FI repo was touched.');
+    return;
+  }
+
   console.log(
     `Skipping validation for ${source.type} (no FI-repo install/build step).`,
   );
@@ -511,40 +717,92 @@ async function ensureMobileRootLockfile(
 
 async function main() {
   const cli = parseArgs(process.argv);
-  const rl = readline.createInterface({ input: stdin, output: stdout });
+  // Ctrl+C at a question cancels the run (the FI clone is only touched after the last question).
+  const { createPrompter } = await import('./prompt.mjs');
+  const rl = createPrompter({
+    cancelMessage: 'Cancelled. Nothing was pushed.',
+  });
 
   try {
     console.log('\nSubmit to FI extensions repo\n');
+    const saved = await readSaved();
 
-    const target =
-      cli.fiUrl || (await ask(rl, 'FI repo Git URL'));
-    if (!target) throw new Error('FI repo URL is required.');
+    // --yes never stops to ask: the FI repo comes from --fi-url (or the one saved by the last
+    // submit) and the project from --project.
+    if (cli.yes && !cli.fiUrl && saved.fiUrl) {
+      cli.fiUrl = saved.fiUrl;
+      console.log(`FI repo: ${saved.fiUrl} (from the last submit)`);
+    }
+    if (cli.yes && !cli.fiUrl)
+      throw new Error('--fi-url is required with --yes.');
+    if (cli.yes && !cli.project)
+      throw new Error('--project is required with --yes.');
+    const target = await askUntilValid(
+      rl,
+      cli.fiUrl,
+      'FI repo Git URL (for example https://github.com/your-org/your-fi-extensions)',
+      saved.fiUrl ?? '',
+      (url) =>
+        !url
+          ? 'The FI repo URL is required.'
+          : /\s/.test(url)
+            ? 'The FI repo URL cannot contain spaces.'
+            : null,
+    );
 
-    const defaultClone = path.join('..', repoName(target));
+    const defaultClone =
+      saved.fiUrl === target && saved.localPath
+        ? saved.localPath
+        : path.join('..', repoName(target));
     const localInput =
       cli.localPath ||
+      (cli.yes ? defaultClone : null) ||
       (await ask(
         rl,
         'Local clone path (FI repo folder, or parent folder)',
         defaultClone,
       ));
 
-    const project =
-      cli.project || (await ask(rl, 'Feature / Widget name'));
-    if (!project) throw new Error('Feature name is required.');
-    assertSafePathSegment(project);
-
-    const source = await detectSource(project, rl);
-    if (!source) {
-      throw new Error(
-        `Could not find "${project}" under widgets, features, or aspects.`,
-      );
+    let source = null;
+    let picked = cli.project;
+    // On a terminal, pick one of your projects from a menu (or type another name).
+    const projects = !picked && rl.tty ? await localProjects() : [];
+    if (projects.length) {
+      const choice = await rl.choose('What do you want to submit?', [
+        ...projects.map((p) => ({ label: p.name, hint: p.type })),
+        { label: 'Type a name', hint: 'a sample or another folder' },
+      ]);
+      if (choice < projects.length) picked = projects[choice].name;
     }
+    const project = await askUntilValid(
+      rl,
+      picked,
+      'Feature / widget / aspect name (its folder name, for example my-bank-chat)',
+      '',
+      async (name) => {
+        if (!name) return 'A name is required.';
+        try {
+          assertSafePathSegment(name);
+        } catch {
+          return `"${name}" is not a folder name.`;
+        }
+        source = await detectSource(name, rl, { noPrompt: cli.yes });
+        return source
+          ? null
+          : `Could not find "${name}" under widgets, features or aspects (for example aspects/mobile/${name}).`;
+      },
+    );
     const { type } = source;
     console.log(`Detected type: ${type}`);
+    const aspect =
+      type === 'mobile-aspect'
+        ? await prepareMobileAspect(source, cli, rl)
+        : type === 'web-aspect'
+          ? await prepareWebAspect(source, cli, rl)
+          : null;
 
     const sourceFileCount = await countSyncableFiles(
-      path.join(ROOT, source.rel),
+      path.join(ROOT, source.srcRel ?? source.rel),
       source.isFile,
     );
     if (sourceFileCount === 0) {
@@ -556,6 +814,7 @@ async function main() {
 
     const localPath = await resolveLocalRepo(target, localInput);
     verifyRemoteUrl(localPath, target);
+    await writeSaved({ fiUrl: target, localPath: localInput });
 
     runProcess('git', ['fetch', 'origin'], localPath);
     const baseBranch = getDefaultBranch(localPath);
@@ -564,7 +823,7 @@ async function main() {
     const openPr = cli.newPr
       ? null
       : openPrs.length
-        ? await pickOpenPr(rl, openPrs, project)
+        ? await pickOpenPr(rl, openPrs, project, { noPrompt: cli.yes })
         : null;
     const isUpdate = Boolean(openPr);
     const branch = isUpdate
@@ -582,7 +841,7 @@ async function main() {
       runProcess('git', ['checkout', '-B', branch], localPath);
     }
 
-    const srcAbs = path.join(ROOT, source.rel);
+    const srcAbs = path.join(ROOT, source.srcRel ?? source.rel);
     const destAbs = path.join(localPath, source.rel);
     assertWithinRepo(localPath, destAbs);
 
@@ -660,7 +919,7 @@ async function main() {
         return;
       }
 
-      const prDescription = await buildPrDescription();
+      const prDescription = await buildPrDescription(aspect);
 
       if (isUpdate) {
         runProcess(

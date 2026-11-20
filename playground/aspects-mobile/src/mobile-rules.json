@@ -1,0 +1,208 @@
+{
+  "$comment": "Mobile V2 aspect acceptance rules used by the preview and its conformance check, from aspect manifest schemaVersion 2.0.0: a CSP directive the manifest does not allow (default-src, report-uri, report-to are always allowed), an extra sandbox token, a granted permission, a placement or a displayAuthority outside the manifest make the app drop the aspect (strict lists, errors); mountStrategy, frequency and trigger outside it are only logged (warnings).",
+  "specVersion": "manifest 2.0.0",
+  "csp": {
+    "allowedDirectives": [
+      "default-src",
+      "script-src",
+      "connect-src",
+      "style-src",
+      "img-src",
+      "font-src",
+      "frame-src",
+      "report-uri",
+      "report-to"
+    ],
+    "unconfirmedDirectives": [],
+    "requiredScriptSrc": "'nonce-aspect'",
+    "forbiddenScriptSrc": ["'unsafe-eval'"],
+    "$comment": "Mobile V2 aspect acceptance rules used by the preview and its conformance check, from aspect manifest schemaVersion 2.0.0: a CSP directive the manifest does not allow (default-src, report-uri, report-to are always allowed), an extra sandbox token, a granted permission, a placement or a displayAuthority outside the manifest make the app drop the aspect (strict lists, errors); mountStrategy, frequency and trigger outside it are only logged (warnings)."
+  },
+  "sandbox": {
+    "allowed": ["allow-scripts", "allow-same-origin"]
+  },
+  "permissions": {
+    "allowed": []
+  },
+  "script": {
+    "sriAlgorithms": {
+      "sha256": 44,
+      "sha384": 64,
+      "sha512": 88
+    },
+    "knownBadSri": {
+      "sha384-OLBgp1GsljhM2TJ+sbHjaiH9txEUvgdDTAzHv2P24donTt6/529l+9Ua0vFImLlb": "This is the SHA-384 of an empty response: the hash was taken from a redirect, a sign-in page or a missing file, not from the script."
+    },
+    "forbiddenHosts": {
+      "storage.cloud.google.com": "This is the Cloud Console download link. It redirects to Google sign-in, so the app receives an empty response. Use https://storage.googleapis.com/<bucket>/<path> instead."
+    }
+  },
+  "navigate": {
+    "$comment": "Mobile V2 aspect acceptance rules used by the preview and its conformance check, from aspect manifest schemaVersion 2.0.0: a CSP directive the manifest does not allow (default-src, report-uri, report-to are always allowed), an extra sandbox token, a granted permission, a placement or a displayAuthority outside the manifest make the app drop the aspect (strict lists, errors); mountStrategy, frequency and trigger outside it are only logged (warnings).",
+    "requireHttps": true,
+    "allowRelative": true
+  },
+  "types": {
+    "chatbot": {
+      "placements": {
+        "known": ["bottom_right_fab"],
+        "rejected": [],
+        "strict": true
+      },
+      "sizes": ["small", "medium", "large"],
+      "displayAuthority": {
+        "known": ["partner_delegated"],
+        "rejected": ["host_immediate"],
+        "strict": true
+      },
+      "mountStrategy": {
+        "known": ["on_route_match"],
+        "rejected": []
+      },
+      "trigger": {
+        "known": ["pageLoad", "event"],
+        "rejected": []
+      },
+      "frequency": {
+        "known": ["always", "authenticated_session"],
+        "rejected": []
+      },
+      "pageRequired": false,
+      "geometry": {
+        "collapsedDp": 56,
+        "panelPercent": {
+          "small": 60,
+          "medium": 80,
+          "large": 100
+        }
+      },
+      "messages": {
+        "chatbotOpen": {
+          "required": ["reason"],
+          "props": {
+            "reason": [
+              "user_clicked_fab",
+              "proactive_engagement",
+              "new_message_received"
+            ]
+          }
+        },
+        "chatbotMinimize": {
+          "required": ["status"],
+          "props": {
+            "status": ["user_minimized", "session_ended"]
+          }
+        },
+        "navigate": {
+          "required": ["url"],
+          "props": {
+            "url": "string"
+          }
+        }
+      },
+      "hostMessages": {
+        "chatbotOpen": "context (sent once, when the loader has loaded)",
+        "contextUpdate": "context (on change)",
+        "chatbotMinimize": {
+          "status": ["host_minimized"]
+        }
+      }
+    },
+    "modal": {
+      "placements": {
+        "known": ["bottom_sheet", "center_overlay"],
+        "rejected": [],
+        "strict": true
+      },
+      "sizes": ["small", "medium", "large"],
+      "displayAuthority": {
+        "known": ["partner_delegated", "host_immediate"],
+        "rejected": [],
+        "strict": true
+      },
+      "mountStrategy": {
+        "known": ["on_route_match", "lazy_on_intent"],
+        "rejected": []
+      },
+      "trigger": {
+        "known": ["pageLoad", "event"],
+        "rejected": []
+      },
+      "frequency": {
+        "known": ["always", "once_per_session", "once_per_user"],
+        "rejected": [],
+        "byDisplayAuthority": {
+          "partner_delegated": ["always"],
+          "host_immediate": ["once_per_session", "once_per_user", "always"]
+        }
+      },
+      "pageRequired": true,
+      "pagesWithoutAspects": ["transaction", "olb/history"],
+      "partnerDelegatedOpenWindowMs": 15000,
+      "geometry": {
+        "sheetPercent": {
+          "small": 40,
+          "medium": 60,
+          "large": 100
+        }
+      },
+      "messages": {
+        "modalOpen": {
+          "required": ["reason"],
+          "props": {
+            "reason": "string"
+          }
+        },
+        "modalDismiss": {
+          "required": ["status"],
+          "props": {
+            "status": ["success", "cancelled", "error"],
+            "actionData": "object"
+          }
+        },
+        "navigate": {
+          "required": ["url"],
+          "props": {
+            "url": "string"
+          }
+        }
+      },
+      "hostMessages": {
+        "modalOpen": "context (sent when the app shows the modal)",
+        "modalDismiss": {
+          "status": ["cancelled"]
+        }
+      }
+    }
+  },
+  "sourceScan": [
+    {
+      "pattern": "\\beval\\s*\\(",
+      "message": "eval() is blocked: the CSP has no 'unsafe-eval'."
+    },
+    {
+      "pattern": "new\\s+Function\\s*\\(",
+      "message": "new Function() is blocked: the CSP has no 'unsafe-eval'."
+    },
+    {
+      "pattern": "\\.innerHTML\\s*=",
+      "message": "Review guidance: avoid assigning innerHTML (an injection risk); build nodes with createElement and textContent. The app doesn't block it."
+    },
+    {
+      "pattern": "document\\.write\\s*\\(",
+      "message": "Review guidance: avoid document.write(). The app doesn't block it."
+    },
+    {
+      "pattern": "window\\.open\\s*\\(",
+      "message": "window.open() does nothing: the sandbox has no allow-popups. Send a navigate request instead."
+    },
+    {
+      "pattern": "getUserMedia|geolocation\\.",
+      "message": "Device APIs (camera, microphone, location) are denied: mobile aspects get no device permissions."
+    },
+    {
+      "pattern": "<form\\b|createElement\\(\\s*['\"]form['\"]",
+      "message": "The sandbox has no allow-forms, so form submit events never fire; use click/Enter handlers."
+    }
+  ]
+}

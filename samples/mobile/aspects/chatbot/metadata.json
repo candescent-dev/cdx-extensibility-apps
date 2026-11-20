@@ -1,0 +1,210 @@
+{
+  "name": "chatbot",
+  "widgetType": "ASPECT",
+  "widgetDescription": "Sample chatbot aspect for mobile V2",
+  "isEnabledWeb": false,
+  "isEnabledMobile": true,
+  "sector": "RETAIL",
+  "properties": [
+    {
+      "propertyName": "ASPECT_TYPE",
+      "propertyType": "TEXT",
+      "propertyLabel": "Aspect Type",
+      "propertyValue": "chatbot",
+      "propertyValueLocale": "",
+      "isRichText": false,
+      "isLocalized": false,
+      "isLocked": false
+    },
+    {
+      "propertyName": "ASPECT_SCRIPT_chatbot_URL",
+      "propertyType": "TEXT",
+      "propertyLabel": "Loader Script URL",
+      "propertyValue": "https://cdn.example-fi.com/aspects/chatbot/static-loader.v1.js",
+      "propertyValueLocale": "",
+      "isRichText": false,
+      "isLocalized": false,
+      "isLocked": false
+    },
+    {
+      "propertyName": "ASPECT_SCRIPT_chatbot_SRI",
+      "propertyType": "TEXT",
+      "propertyLabel": "Loader Script SRI",
+      "propertyValue": "sha384-NAjOV8F5v6Ld9XOL4TR3/Ydz0pFh75yj+7OnQ1xpfJz31jlJCeHMkBM7Hh0sr99Q",
+      "propertyValueLocale": "",
+      "isRichText": false,
+      "isLocalized": false,
+      "isLocked": false
+    },
+    {
+      "propertyName": "ASPECT_SCRIPT_chatbot_DATA_title",
+      "propertyType": "TEXT",
+      "propertyLabel": "title",
+      "propertyValue": "Need help?",
+      "propertyValueLocale": "",
+      "isRichText": false,
+      "isLocalized": false,
+      "isLocked": false
+    },
+    {
+      "propertyName": "ASPECT_SCRIPT_chatbot_DATA_greeting",
+      "propertyType": "TEXT",
+      "propertyLabel": "greeting",
+      "propertyValue": "Hi! How can we help?",
+      "propertyValueLocale": "",
+      "isRichText": false,
+      "isLocalized": false,
+      "isLocked": false
+    },
+    {
+      "propertyName": "ASPECT_SCRIPT_chatbot_DATA_accentcolor",
+      "propertyType": "TEXT",
+      "propertyLabel": "accentcolor",
+      "propertyValue": "#1a6cda",
+      "propertyValueLocale": "",
+      "isRichText": false,
+      "isLocalized": false,
+      "isLocked": false
+    },
+    {
+      "propertyName": "ASPECT_SCRIPT_chatbot_DATA_helpurl",
+      "propertyType": "TEXT",
+      "propertyLabel": "helpurl",
+      "propertyValue": "https://www.example-fi.com/help",
+      "propertyValueLocale": "",
+      "isRichText": false,
+      "isLocalized": false,
+      "isLocked": false
+    },
+    {
+      "propertyName": "ASPECT_SCRIPT_chatbot_DATA_uiurl",
+      "propertyType": "TEXT",
+      "propertyLabel": "uiurl",
+      "propertyValue": "http://127.0.0.1:4310/aspects/chatbot/support-chat-ui.html",
+      "propertyValueLocale": "",
+      "isRichText": false,
+      "isLocalized": false,
+      "isLocked": false
+    },
+    {
+      "propertyName": "ASPECT_PROPERTY_MOBILE_CONTENTSECURITYPOLICY",
+      "propertyType": "TEXT",
+      "propertyLabel": "CSP",
+      "propertyValue": "script-src 'self' 'nonce-aspect'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; frame-src 'self' http://127.0.0.1:4310",
+      "propertyValueLocale": "",
+      "isRichText": false,
+      "isLocalized": false,
+      "isLocked": false
+    },
+    {
+      "propertyName": "ASPECT_PROPERTY_MOBILE_SANDBOXDIRECTIVES",
+      "propertyType": "TEXT",
+      "propertyLabel": "Sandbox Directives",
+      "propertyValue": "allow-scripts allow-same-origin",
+      "propertyValueLocale": "",
+      "isRichText": false,
+      "isLocalized": false,
+      "isLocked": false
+    },
+    {
+      "propertyName": "ASPECT_PROPERTY_MOBILE_PLACEMENTID",
+      "propertyType": "TEXT",
+      "propertyLabel": "Placement Id",
+      "propertyValue": "bottom_right_fab",
+      "propertyValueLocale": "",
+      "isRichText": false,
+      "isLocalized": false,
+      "isLocked": false
+    },
+    {
+      "propertyName": "ASPECT_PROPERTY_MOBILE_DISPLAYAUTHORITY",
+      "propertyType": "TEXT",
+      "propertyLabel": "Display Authority",
+      "propertyValue": "partner_delegated",
+      "propertyValueLocale": "",
+      "isRichText": false,
+      "isLocalized": false,
+      "isLocked": false
+    },
+    {
+      "propertyName": "ASPECT_PROPERTY_MOBILE_MOUNTSTRATEGY",
+      "propertyType": "TEXT",
+      "propertyLabel": "Mount Strategy",
+      "propertyValue": "on_route_match",
+      "propertyValueLocale": "",
+      "isRichText": false,
+      "isLocalized": false,
+      "isLocked": false
+    },
+    {
+      "propertyName": "ASPECT_PROPERTY_MOBILE_TRIGGER",
+      "propertyType": "TEXT",
+      "propertyLabel": "Trigger",
+      "propertyValue": "pageLoad",
+      "propertyValueLocale": "",
+      "isRichText": false,
+      "isLocalized": false,
+      "isLocked": false
+    },
+    {
+      "propertyName": "ASPECT_PROPERTY_MOBILE_PLACEMENTSIZE",
+      "propertyType": "TEXT",
+      "propertyLabel": "Placement Size",
+      "propertyValue": "large",
+      "propertyValueLocale": "",
+      "isRichText": false,
+      "isLocalized": false,
+      "isLocked": false
+    },
+    {
+      "propertyName": "ASPECT_PROPERTY_MOBILE_FREQUENCY",
+      "propertyType": "TEXT",
+      "propertyLabel": "Frequency",
+      "propertyValue": "always",
+      "propertyValueLocale": "",
+      "isRichText": false,
+      "isLocalized": false,
+      "isLocked": false
+    },
+    {
+      "propertyName": "ASPECT_PROPERTY_MOBILE_TOKENTIMEOUTMS",
+      "propertyType": "TEXT",
+      "propertyLabel": "tokenTimeoutMs",
+      "propertyValue": "5000",
+      "propertyValueLocale": "",
+      "isRichText": false,
+      "isLocalized": false,
+      "isLocked": false
+    },
+    {
+      "propertyName": "ASPECT_PROPERTY_MOBILE_REDIRECTTIMEOUTMS",
+      "propertyType": "TEXT",
+      "propertyLabel": "redirectTimeoutMs",
+      "propertyValue": "5000",
+      "propertyValueLocale": "",
+      "isRichText": false,
+      "isLocalized": false,
+      "isLocked": false
+    },
+    {
+      "propertyName": "ASPECT_PROPERTY_MOBILE_REFRESHINTERVALMS",
+      "propertyType": "TEXT",
+      "propertyLabel": "refreshIntervalMs",
+      "propertyValue": "30000",
+      "propertyValueLocale": "",
+      "isRichText": false,
+      "isLocalized": false,
+      "isLocked": false
+    },
+    {
+      "propertyName": "ASPECT_PROPERTY_MOBILE_CONFIGTIMEOUTMS",
+      "propertyType": "TEXT",
+      "propertyLabel": "configTimeoutMs",
+      "propertyValue": "8000",
+      "propertyValueLocale": "",
+      "isRichText": false,
+      "isLocalized": false,
+      "isLocked": false
+    }
+  ]
+}

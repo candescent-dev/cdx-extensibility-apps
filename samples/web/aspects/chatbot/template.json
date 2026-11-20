@@ -1,0 +1,200 @@
+{
+  "$comment": "Web chatbot sample. Loader scriptData fields become ASPECT_SCRIPT_<scriptKey>_DATA_<datakey> (lowercase). Extension settings are submitted as ASPECT_PROPERTY_WEB_<NAME> (STATICLOADERKEY, OIDCCLIENTID, REDIRECTURL, TOKENPATH, TOKENTIMEOUTMS, REDIRECTTIMEOUTMS, REFRESHINTERVALMS, CONFIGTIMEOUTMS); the BFF delivers them in aspect.properties as bare lowercase keys (staticloaderkey, oidcclientid, ...), which the extension reads. OIDC runs when oidcclientid and redirecturl are both set.",
+  "id": "chatbot",
+  "type": "chatbot",
+  "title": "Chat Assistance",
+  "description": "Home chatbot. The host shows the launcher on Home load. Members can open the assistant, chat, and minimize it. Optional OIDC: FI token endpoint plus partner redirecturl exchange.",
+  "scriptKey": "chatbot",
+  "loaderFile": "static-loader.js",
+  "uiFile": "support-chat-ui.html",
+  "fixed": {
+    "ASPECT_PROPERTY_WEB_SANDBOXDIRECTIVES": "allow-scripts allow-same-origin",
+    "ASPECT_PROPERTY_WEB_PERMISSIONPOLICY": "camera=()",
+    "ASPECT_PROPERTY_WEB_PLACEMENTID": "bottom_right",
+    "ASPECT_PROPERTY_WEB_PAGE": "/app/home",
+    "ASPECT_PROPERTY_WEB_DISPLAYAUTHORITY": "host_immediate",
+    "ASPECT_PROPERTY_WEB_MOUNTSTRATEGY": "on_route_match",
+    "ASPECT_PROPERTY_WEB_FREQUENCY": "always",
+    "ASPECT_PROPERTY_WEB_TRIGGER": "pageLoad"
+  },
+  "csp": {
+    "script-src": [
+      "'self'",
+      "'nonce-aspect'"
+    ],
+    "style-src": [
+      "'self'",
+      "'unsafe-inline'"
+    ],
+    "img-src": [
+      "'self'",
+      "data:"
+    ],
+    "frame-src": [
+      "'self'"
+    ],
+    "connect-src": [
+      "'self'"
+    ]
+  },
+  "fields": [
+    {
+      "key": "staticloaderkey",
+      "target": "property",
+      "property": "ASPECT_PROPERTY_WEB_STATICLOADERKEY",
+      "label": "Static loader key",
+      "type": "text",
+      "required": true,
+      "default": "chatbot",
+      "pattern": "^[A-Za-z][A-Za-z0-9]{0,63}$",
+      "maxLength": 64,
+      "group": "your-pages",
+      "help": "Key the extension passes to loadSecureExternalScript. Any value, but it must match the <key> in ASPECT_SCRIPT_<key>_URL / _SRI / _DATA_* (default \"chatbot\")."
+    },
+    {
+      "key": "loaderurl",
+      "target": "script",
+      "label": "Static loader URL",
+      "type": "url",
+      "required": true,
+      "default": "",
+      "csp": "script-src",
+      "group": "your-pages",
+      "help": "Hosted HTTPS URL of static-loader.js (ASPECT_SCRIPT_chatbot_URL). OLB web only adds the extension's sourceUrl origin to script-src, so the loader's origin must be in the aspect CSP."
+    },
+    {
+      "key": "uiurl",
+      "target": "data",
+      "label": "Partner UI URL",
+      "type": "url",
+      "required": true,
+      "default": "",
+      "csp": "frame-src",
+      "dataKey": "uiurl",
+      "group": "your-pages",
+      "help": "HTTPS chat UI page (scriptData.uiurl). Required unless configurl is used."
+    },
+    {
+      "key": "configurl",
+      "target": "data",
+      "label": "Runtime config URL",
+      "type": "url",
+      "required": false,
+      "default": "",
+      "csp": "connect-src",
+      "dataKey": "configurl",
+      "group": "your-pages",
+      "help": "Optional HTTPS GET returning { schemaVersion, isActive, uiUrl }. Requires uiorigin."
+    },
+    {
+      "key": "uiorigin",
+      "target": "data",
+      "label": "Partner UI origin",
+      "type": "url",
+      "required": false,
+      "default": "",
+      "csp": "frame-src",
+      "dataKey": "uiorigin",
+      "group": "your-pages",
+      "help": "Required when configurl is set; allowed origin for uiurl (scriptData.uiorigin)."
+    },
+    {
+      "key": "oidcclientid",
+      "target": "property",
+      "property": "ASPECT_PROPERTY_WEB_OIDCCLIENTID",
+      "label": "OIDC client id",
+      "type": "text",
+      "required": false,
+      "default": "",
+      "pattern": "^[A-Za-z0-9._~-]{1,128}$",
+      "maxLength": 128,
+      "requires": "redirecturl",
+      "group": "identity",
+      "help": "Registered OIDC consumer id for the FI /aspect/token endpoint. Legacy property key clientid is also accepted."
+    },
+    {
+      "key": "redirecturl",
+      "target": "property",
+      "property": "ASPECT_PROPERTY_WEB_REDIRECTURL",
+      "label": "Partner token exchange URL",
+      "type": "url",
+      "required": false,
+      "default": "",
+      "requires": "oidcclientid",
+      "csp": "connect-src",
+      "group": "identity",
+      "help": "Partner HTTPS endpoint: POST { code } returns { sessionToken, expiresIn }. Required with oidcclientid to enable OIDC."
+    },
+    {
+      "key": "tokenpath",
+      "target": "property",
+      "property": "ASPECT_PROPERTY_WEB_TOKENPATH",
+      "label": "FI token path",
+      "type": "text",
+      "required": false,
+      "default": "/feng-bff/live/v1/aspect/token",
+      "group": "identity",
+      "help": "Path on the FI OLB origin for the authorization-code request (live vs beta per environment)."
+    },
+    {
+      "key": "tokentimeoutms",
+      "target": "property",
+      "property": "ASPECT_PROPERTY_WEB_TOKENTIMEOUTMS",
+      "label": "Token request timeout (ms)",
+      "type": "text",
+      "required": true,
+      "default": "5000",
+      "pattern": "^[1-9][0-9]{2,5}$",
+      "group": "identity"
+    },
+    {
+      "key": "redirecttimeoutms",
+      "target": "property",
+      "property": "ASPECT_PROPERTY_WEB_REDIRECTTIMEOUTMS",
+      "label": "Partner redirect timeout (ms)",
+      "type": "text",
+      "required": true,
+      "default": "5000",
+      "pattern": "^[1-9][0-9]{2,5}$",
+      "group": "identity"
+    },
+    {
+      "key": "refreshintervalms",
+      "target": "property",
+      "property": "ASPECT_PROPERTY_WEB_REFRESHINTERVALMS",
+      "label": "Identity refresh interval (ms)",
+      "type": "text",
+      "required": true,
+      "default": "30000",
+      "pattern": "^[1-9][0-9]{2,5}$",
+      "group": "identity"
+    },
+    {
+      "key": "configtimeoutms",
+      "target": "property",
+      "property": "ASPECT_PROPERTY_WEB_CONFIGTIMEOUTMS",
+      "label": "Loader config fetch timeout (ms)",
+      "type": "text",
+      "required": true,
+      "default": "8000",
+      "pattern": "^[1-9][0-9]{2,5}$",
+      "group": "identity",
+      "help": "Passed to the static loader in extension init."
+    }
+  ],
+  "groups": [
+    {
+      "id": "your-pages",
+      "title": "Your pages"
+    },
+    {
+      "id": "identity",
+      "title": "OIDC identity (optional)"
+    },
+    {
+      "id": "advanced",
+      "title": "Advanced",
+      "collapsed": true
+    }
+  ]
+}

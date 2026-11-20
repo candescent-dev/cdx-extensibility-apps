@@ -1,0 +1,265 @@
+{
+  "$comment": "Template schema read by `pnpm run create-aspect:mobile`, `pnpm run submit-to-fi`, the Mobile Aspect Preview and its checker. 'property' fields become ASPECT_PROPERTY_MOBILE_* values (the aspect extension reads the sign-in and timeout ones from dbk.getAspectConfig().properties); 'data' fields become one Data Attribute each (ASPECT_SCRIPT_<name>_DATA_<dataKey>).",
+  "id": "chatbot",
+  "type": "chatbot",
+  "title": "Support Chat",
+  "description": "Floating button that opens a chat panel. The loader frames your chat UI (uiUrl) and, optionally, hands a verified identity to your backend (OIDC).",
+  "scriptKey": "chatbot",
+  "loaderFile": "static-loader.js",
+  "uiFile": "support-chat-ui.html",
+  "fixed": {
+    "ASPECT_PROPERTY_MOBILE_SANDBOXDIRECTIVES": "allow-scripts allow-same-origin",
+    "ASPECT_PROPERTY_MOBILE_PLACEMENTID": "bottom_right_fab",
+    "ASPECT_PROPERTY_MOBILE_DISPLAYAUTHORITY": "partner_delegated",
+    "ASPECT_PROPERTY_MOBILE_MOUNTSTRATEGY": "on_route_match",
+    "ASPECT_PROPERTY_MOBILE_TRIGGER": "pageLoad"
+  },
+  "csp": {
+    "script-src": ["'self'", "'nonce-aspect'"],
+    "style-src": ["'self'", "'unsafe-inline'"],
+    "img-src": ["'self'", "data:"],
+    "connect-src": ["'self'"],
+    "frame-src": ["'self'"]
+  },
+  "fields": [
+    {
+      "key": "size",
+      "target": "property",
+      "property": "ASPECT_PROPERTY_MOBILE_PLACEMENTSIZE",
+      "label": "Chat panel size",
+      "type": "choice",
+      "options": ["small", "medium", "large"],
+      "default": "large",
+      "group": "customer",
+      "help": "How much of the screen the open chat covers.",
+      "optionLabels": {
+        "small": "Small (about 60% of the screen)",
+        "medium": "Medium (about 80%)",
+        "large": "Large (full screen)"
+      }
+    },
+    {
+      "key": "frequency",
+      "target": "property",
+      "property": "ASPECT_PROPERTY_MOBILE_FREQUENCY",
+      "label": "When to show",
+      "type": "choice",
+      "options": ["always", "authenticated_session"],
+      "default": "always",
+      "group": "customer",
+      "help": "Both options behave the same on mobile today.",
+      "optionLabels": {
+        "always": "Always",
+        "authenticated_session": "Signed-in sessions only"
+      }
+    },
+    {
+      "key": "title",
+      "target": "data",
+      "label": "Chat window title",
+      "type": "text",
+      "maxLength": 40,
+      "required": true,
+      "default": "Need help?",
+      "dataKey": "title",
+      "group": "customer",
+      "help": "Shown in the chat header. Up to 40 characters."
+    },
+    {
+      "key": "greeting",
+      "target": "data",
+      "label": "First message",
+      "type": "text",
+      "maxLength": 200,
+      "required": true,
+      "default": "Hi! How can we help?",
+      "dataKey": "greeting",
+      "group": "customer",
+      "help": "The first message in the chat. Up to 200 characters."
+    },
+    {
+      "key": "accentColor",
+      "target": "data",
+      "label": "Brand colour",
+      "type": "color",
+      "required": true,
+      "default": "#1a6cda",
+      "dataKey": "accentcolor",
+      "group": "customer",
+      "help": "Used for buttons and the header."
+    },
+    {
+      "key": "helpUrl",
+      "navigates": true,
+      "csp": "frame-src",
+      "target": "data",
+      "label": "Help link",
+      "type": "url",
+      "required": false,
+      "default": "",
+      "dataKey": "helpurl",
+      "group": "customer",
+      "help": "Optional https link shown as \"Visit help center\". Its host is added to the CSP frame-src, so the app opens it in the phone's browser."
+    },
+    {
+      "key": "uiUrl",
+      "target": "data",
+      "label": "Your UI page URL",
+      "type": "url",
+      "required": true,
+      "allowLocalHttp": true,
+      "default": "http://127.0.0.1:4310/aspects/chatbot/support-chat-ui.html",
+      "csp": "frame-src",
+      "productionHint": "uiUrl points at the local preview copy of support-chat-ui.html. Host the UI page on your https origin before going to production.",
+      "dataKey": "uiurl",
+      "group": "your-pages",
+      "help": "Where you host your copy of the UI page (https). The default works on this machine only."
+    },
+    {
+      "key": "apiUrl",
+      "target": "data",
+      "label": "Chat backend URL",
+      "type": "url",
+      "required": false,
+      "default": "",
+      "allowLocalHttp": true,
+      "productionHint": "Without a chat backend the chatbot only echoes messages. Set apiUrl before going to production.",
+      "uiAllowlist": "ALLOWED_API_ORIGINS",
+      "dataKey": "apiurl",
+      "group": "your-pages",
+      "help": "Your chat backend (https). Leave empty to test with echo replies."
+    },
+    {
+      "key": "oidcClientId",
+      "target": "property",
+      "property": "ASPECT_PROPERTY_MOBILE_OIDCCLIENTID",
+      "label": "OIDC client id",
+      "type": "text",
+      "maxLength": 128,
+      "required": false,
+      "default": "",
+      "pattern": "^[A-Za-z0-9._~-]{1,128}$",
+      "requires": "redirectUrl",
+      "group": "sign-in",
+      "help": "The public client id from your Integration PM. Never enter the client secret.",
+      "links": [
+        {
+          "label": "Where the client id comes from",
+          "url": "https://docs.candescent.com/guides/OIDC%20Integration/overview/#4-integration-testing-in-fi-environments"
+        }
+      ]
+    },
+    {
+      "key": "redirectUrl",
+      "target": "property",
+      "property": "ASPECT_PROPERTY_MOBILE_REDIRECTURL",
+      "label": "Redirect URL (your backend)",
+      "type": "url",
+      "required": false,
+      "default": "",
+      "csp": "connect-src",
+      "allowLocalHttp": true,
+      "requires": "oidcClientId",
+      "group": "sign-in",
+      "help": "Your backend endpoint (https). The aspect POSTs the one-time sign-in code here; your backend exchanges it for tokens and answers with its own session.",
+      "links": [
+        {
+          "label": "Token exchange",
+          "url": "https://docs.candescent.com/guides/OIDC%20Integration/technical-reference/#token-exchange"
+        },
+        {
+          "label": "Test your credentials",
+          "url": "https://docs.candescent.com/guides/OIDC%20Integration/technical-reference/#testing-your-credentials"
+        }
+      ]
+    },
+    {
+      "key": "configUrl",
+      "target": "data",
+      "label": "Remote config URL",
+      "type": "url",
+      "required": false,
+      "default": "",
+      "csp": "connect-src",
+      "dataKey": "configurl",
+      "group": "advanced",
+      "help": "Optional JSON file that can switch the aspect off without resubmitting."
+    },
+    {
+      "key": "tokenTimeoutMs",
+      "target": "property",
+      "property": "ASPECT_PROPERTY_MOBILE_TOKENTIMEOUTMS",
+      "label": "Sign-in code timeout (ms)",
+      "type": "text",
+      "required": true,
+      "default": "5000",
+      "pattern": "^[1-9][0-9]{2,5}$",
+      "group": "advanced",
+      "help": "How long the aspect waits for the app to return the sign-in code. The app sends nothing when it refuses the request, so this is the only way that failure shows."
+    },
+    {
+      "key": "redirectTimeoutMs",
+      "target": "property",
+      "property": "ASPECT_PROPERTY_MOBILE_REDIRECTTIMEOUTMS",
+      "label": "Redirect URL timeout (ms)",
+      "type": "text",
+      "required": true,
+      "default": "5000",
+      "pattern": "^[1-9][0-9]{2,5}$",
+      "group": "advanced",
+      "help": "How long the aspect waits for your backend to answer with a session."
+    },
+    {
+      "key": "refreshIntervalMs",
+      "target": "property",
+      "property": "ASPECT_PROPERTY_MOBILE_REFRESHINTERVALMS",
+      "label": "Minimum time between sign-in refreshes (ms)",
+      "type": "text",
+      "required": true,
+      "default": "30000",
+      "pattern": "^[1-9][0-9]{2,5}$",
+      "group": "advanced",
+      "help": "A refresh your page asks for sooner than this returns the last result."
+    },
+    {
+      "key": "configTimeoutMs",
+      "target": "property",
+      "property": "ASPECT_PROPERTY_MOBILE_CONFIGTIMEOUTMS",
+      "label": "Remote config timeout (ms)",
+      "type": "text",
+      "required": true,
+      "default": "8000",
+      "pattern": "^[1-9][0-9]{2,5}$",
+      "group": "advanced",
+      "help": "How long the aspect waits for the remote config file before it gives up and shows nothing."
+    }
+  ],
+  "groups": [
+    {
+      "id": "customer",
+      "title": "What your customers see"
+    },
+    {
+      "id": "your-pages",
+      "title": "Your pages and backend",
+      "help": "support-chat-ui.html is a reference page. Host your own copy, styled to follow FDS."
+    },
+    {
+      "id": "sign-in",
+      "title": "Customer sign-in (optional)",
+      "help": "Optional. Fill in both fields so your backend knows who the customer is.",
+      "links": [
+        {
+          "label": "Sign-in for mobile aspects (native bridge)",
+          "url": "https://docs.candescent.com/guides/Building%20Extensions/Aspects/Mobile/technical-reference/#authentication-via-native-bridge"
+        }
+      ],
+      "collapsed": true
+    },
+    {
+      "id": "advanced",
+      "title": "Advanced",
+      "collapsed": true
+    }
+  ]
+}

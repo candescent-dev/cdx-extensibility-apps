@@ -1,0 +1,230 @@
+{
+  "name": "modal",
+  "widgetType": "ASPECT",
+  "widgetDescription": "Sample bottom-sheet modal aspect for mobile V2",
+  "isEnabledWeb": false,
+  "isEnabledMobile": true,
+  "sector": "RETAIL",
+  "properties": [
+    {
+      "propertyName": "ASPECT_TYPE",
+      "propertyType": "TEXT",
+      "propertyLabel": "Aspect Type",
+      "propertyValue": "modal",
+      "propertyValueLocale": "",
+      "isRichText": false,
+      "isLocalized": false,
+      "isLocked": false
+    },
+    {
+      "propertyName": "ASPECT_SCRIPT_modal_URL",
+      "propertyType": "TEXT",
+      "propertyLabel": "Loader Script URL",
+      "propertyValue": "https://cdn.example-fi.com/aspects/modal/static-loader.v1.js",
+      "propertyValueLocale": "",
+      "isRichText": false,
+      "isLocalized": false,
+      "isLocked": false
+    },
+    {
+      "propertyName": "ASPECT_SCRIPT_modal_SRI",
+      "propertyType": "TEXT",
+      "propertyLabel": "Loader Script SRI",
+      "propertyValue": "sha384-37Z9yiQRnspk6lY8yMx0kAZZxtQ2oUHo71rXiNMeOT9E1Y2jSsyqVcOotwgyRnVv",
+      "propertyValueLocale": "",
+      "isRichText": false,
+      "isLocalized": false,
+      "isLocked": false
+    },
+    {
+      "propertyName": "ASPECT_SCRIPT_modal_DATA_title",
+      "propertyType": "TEXT",
+      "propertyLabel": "title",
+      "propertyValue": "Go paperless",
+      "propertyValueLocale": "",
+      "isRichText": false,
+      "isLocalized": false,
+      "isLocked": false
+    },
+    {
+      "propertyName": "ASPECT_SCRIPT_modal_DATA_body",
+      "propertyType": "TEXT",
+      "propertyLabel": "body",
+      "propertyValue": "Switch to e-statements.",
+      "propertyValueLocale": "",
+      "isRichText": false,
+      "isLocalized": false,
+      "isLocked": false
+    },
+    {
+      "propertyName": "ASPECT_SCRIPT_modal_DATA_ctatext",
+      "propertyType": "TEXT",
+      "propertyLabel": "ctatext",
+      "propertyValue": "Learn more",
+      "propertyValueLocale": "",
+      "isRichText": false,
+      "isLocalized": false,
+      "isLocked": false
+    },
+    {
+      "propertyName": "ASPECT_SCRIPT_modal_DATA_ctaurl",
+      "propertyType": "TEXT",
+      "propertyLabel": "ctaurl",
+      "propertyValue": "https://www.example-fi.com/estatements",
+      "propertyValueLocale": "",
+      "isRichText": false,
+      "isLocalized": false,
+      "isLocked": false
+    },
+    {
+      "propertyName": "ASPECT_SCRIPT_modal_DATA_accentcolor",
+      "propertyType": "TEXT",
+      "propertyLabel": "accentcolor",
+      "propertyValue": "#1a6cda",
+      "propertyValueLocale": "",
+      "isRichText": false,
+      "isLocalized": false,
+      "isLocked": false
+    },
+    {
+      "propertyName": "ASPECT_SCRIPT_modal_DATA_uiurl",
+      "propertyType": "TEXT",
+      "propertyLabel": "uiurl",
+      "propertyValue": "http://127.0.0.1:4310/aspects/modal/promotion-sheet-ui.html",
+      "propertyValueLocale": "",
+      "isRichText": false,
+      "isLocalized": false,
+      "isLocked": false
+    },
+    {
+      "propertyName": "ASPECT_PROPERTY_MOBILE_CONTENTSECURITYPOLICY",
+      "propertyType": "TEXT",
+      "propertyLabel": "CSP",
+      "propertyValue": "script-src 'self' 'nonce-aspect'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; frame-src 'self' http://127.0.0.1:4310",
+      "propertyValueLocale": "",
+      "isRichText": false,
+      "isLocalized": false,
+      "isLocked": false
+    },
+    {
+      "propertyName": "ASPECT_PROPERTY_MOBILE_SANDBOXDIRECTIVES",
+      "propertyType": "TEXT",
+      "propertyLabel": "Sandbox Directives",
+      "propertyValue": "allow-scripts allow-same-origin",
+      "propertyValueLocale": "",
+      "isRichText": false,
+      "isLocalized": false,
+      "isLocked": false
+    },
+    {
+      "propertyName": "ASPECT_PROPERTY_MOBILE_PLACEMENTID",
+      "propertyType": "TEXT",
+      "propertyLabel": "Placement Id",
+      "propertyValue": "bottom_sheet",
+      "propertyValueLocale": "",
+      "isRichText": false,
+      "isLocalized": false,
+      "isLocked": false
+    },
+    {
+      "propertyName": "ASPECT_PROPERTY_MOBILE_DISPLAYAUTHORITY",
+      "propertyType": "TEXT",
+      "propertyLabel": "Display Authority",
+      "propertyValue": "partner_delegated",
+      "propertyValueLocale": "",
+      "isRichText": false,
+      "isLocalized": false,
+      "isLocked": false
+    },
+    {
+      "propertyName": "ASPECT_PROPERTY_MOBILE_MOUNTSTRATEGY",
+      "propertyType": "TEXT",
+      "propertyLabel": "Mount Strategy",
+      "propertyValue": "on_route_match",
+      "propertyValueLocale": "",
+      "isRichText": false,
+      "isLocalized": false,
+      "isLocked": false
+    },
+    {
+      "propertyName": "ASPECT_PROPERTY_MOBILE_TRIGGER",
+      "propertyType": "TEXT",
+      "propertyLabel": "Trigger",
+      "propertyValue": "pageLoad",
+      "propertyValueLocale": "",
+      "isRichText": false,
+      "isLocalized": false,
+      "isLocked": false
+    },
+    {
+      "propertyName": "ASPECT_PROPERTY_MOBILE_FREQUENCY",
+      "propertyType": "TEXT",
+      "propertyLabel": "Frequency",
+      "propertyValue": "always",
+      "propertyValueLocale": "",
+      "isRichText": false,
+      "isLocalized": false,
+      "isLocked": false
+    },
+    {
+      "propertyName": "ASPECT_PROPERTY_MOBILE_PAGE",
+      "propertyType": "TEXT",
+      "propertyLabel": "Page",
+      "propertyValue": "/app/home",
+      "propertyValueLocale": "",
+      "isRichText": false,
+      "isLocalized": false,
+      "isLocked": false
+    },
+    {
+      "propertyName": "ASPECT_PROPERTY_MOBILE_PLACEMENTSIZE",
+      "propertyType": "TEXT",
+      "propertyLabel": "Placement Size",
+      "propertyValue": "medium",
+      "propertyValueLocale": "",
+      "isRichText": false,
+      "isLocalized": false,
+      "isLocked": false
+    },
+    {
+      "propertyName": "ASPECT_PROPERTY_MOBILE_TOKENTIMEOUTMS",
+      "propertyType": "TEXT",
+      "propertyLabel": "tokenTimeoutMs",
+      "propertyValue": "5000",
+      "propertyValueLocale": "",
+      "isRichText": false,
+      "isLocalized": false,
+      "isLocked": false
+    },
+    {
+      "propertyName": "ASPECT_PROPERTY_MOBILE_REDIRECTTIMEOUTMS",
+      "propertyType": "TEXT",
+      "propertyLabel": "redirectTimeoutMs",
+      "propertyValue": "5000",
+      "propertyValueLocale": "",
+      "isRichText": false,
+      "isLocalized": false,
+      "isLocked": false
+    },
+    {
+      "propertyName": "ASPECT_PROPERTY_MOBILE_REFRESHINTERVALMS",
+      "propertyType": "TEXT",
+      "propertyLabel": "refreshIntervalMs",
+      "propertyValue": "30000",
+      "propertyValueLocale": "",
+      "isRichText": false,
+      "isLocalized": false,
+      "isLocked": false
+    },
+    {
+      "propertyName": "ASPECT_PROPERTY_MOBILE_CONFIGTIMEOUTMS",
+      "propertyType": "TEXT",
+      "propertyLabel": "configTimeoutMs",
+      "propertyValue": "8000",
+      "propertyValueLocale": "",
+      "isRichText": false,
+      "isLocalized": false,
+      "isLocked": false
+    }
+  ]
+}

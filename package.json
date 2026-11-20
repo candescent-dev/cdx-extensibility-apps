@@ -1,6 +1,6 @@
 {
   "name": "@cdx-extensions/cdx-apps",
-  "version": "1.1.9",
+  "version": "1.2.0",
   "license": "MIT",
   "private": true,
   "scripts": {
@@ -14,7 +14,10 @@
     "build:sandbox": "node tools/scripts/run-root-build.mjs --configuration=sandbox",
     "build:stage": "node tools/scripts/run-root-build.mjs --configuration=stage",
     "build:production": "node tools/scripts/run-root-build.mjs --configuration=production",
-    "submit-to-fi": "node tools/scripts/submit-to-fi-repo.js"
+    "submit-to-fi": "node tools/scripts/submit-to-fi-repo.js",
+    "create-aspect": "node tools/scripts/create-aspect-platform.mjs",
+    "create-aspect:web": "node tools/scripts/create-web-aspect.mjs",
+    "create-aspect:mobile": "node tools/scripts/create-aspect.mjs"
   },
   "dependencies": {
     "@cdx-extensions/di-sdk": "1.1.7",

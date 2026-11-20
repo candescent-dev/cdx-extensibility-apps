@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mobile Aspect Preview</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500&family=Inter:wght@400;500;600&display=swap"
+    />
+    <link rel="stylesheet" href="/src/shell.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <img
+        class="wordmark"
+        src="/src/candescent-wordmark.svg"
+        alt="Candescent"
+      />
+      <span class="divider" aria-hidden="true"></span>
+      <div class="titles">
+        <h1>Mobile Aspect Preview</h1>
+      </div>
+      <nav class="topnav" aria-label="Help">
+        <a
+          href="https://docs.candescent.com/guides/Building%20Extensions/Aspects/faq/#troubleshooting"
+          target="_blank"
+          rel="noopener"
+          >Troubleshooting</a
+        >
+      </nav>
+    </header>
+
+    <section class="toolbar card" aria-label="Preview settings">
+      <label class="control"
+        ><span class="label">Aspect</span>
+        <select id="aspect"></select>
+      </label>
+      <button id="reload" type="button" class="btn primary">Reload</button>
+      <p class="aspect-origin" id="aspectOrigin" role="status"></p>
+    </section>
+
+    <details class="options card" id="advanced" hidden>
+      <summary>Advanced runtime options</summary>
+      <div class="opts">
+        <label
+          ><input type="checkbox" id="setKey" checked /> Runtime sets
+          <code>__ASPECT_SCRIPT_KEY__</code></label
+        >
+        <label
+          ><input type="checkbox" id="twice" /> Evaluate the loader twice</label
+        >
+        <label
+          ><input type="checkbox" id="lowerKeys" /> Lowercase Script
+          Names</label
+        >
+      </div>
+    </details>
+
+    <main class="wrap">
+      <!-- Home screen follows Figma "SDK - Extensibility / Aspect mobile" (375 x 812): status bar, greeting,
+           FDIC notice, account cards and the tab bar. The 44px status bar and 86px tab bar (with the home
+           indicator) match STATUS_BAR / NAV_BAR in shell.mjs. -->
+      <div class="phone" aria-label="Phone preview">
+        <div class="screen" id="screen">
+          <div class="statusbar">
+            <span class="statusbar-time">9:41</span
+            ><span class="statusbar-icons" aria-hidden="true"></span>
+          </div>
+          <div class="appcontent">
+            <div class="app-header home" id="appHeader">
+              <img class="app-logo" src="/src/candescent-symbol.svg" alt="" />
+              <span class="app-header-title" id="appcontent">Candescent</span>
+              <button
+                type="button"
+                class="app-gear"
+                id="themeButton"
+                aria-label="Theme"
+                aria-haspopup="menu"
+                aria-expanded="false"
+              >
+                <svg class="mi" viewBox="0 0 24 24" aria-hidden="true">
+                  <path
+                    d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.48.48 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.49.49 0 0 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"
+                  />
+                </svg>
+              </button>
+            </div>
+            <p class="app-note" id="screenNote" hidden></p>
+            <div class="app-screen" data-screen="home">
+              <div class="app-greeting">Good morning, John</div>
+              <div class="app-fdic">
+                <img
+                  class="app-fdic-logo"
+                  src="/src/phone-fdic-logo.svg"
+                  alt="FDIC"
+                />
+                <span class="app-fdic-text"
+                  >FDIC-Insured—Backed by the full faith and credit of the U.S.
+                  Government</span
+                >
+              </div>
+              <div class="app-accounts">
+                <div class="app-section">
+                  Any page
+                  <svg class="mi caret" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M7 10l5 5 5-5z" />
+                  </svg>
+                </div>
+                <div class="app-account">
+                  <small>Savings ··· 0937</small><b>$6,789.12</b>
+                </div>
+                <div class="app-account">
+                  <small>Savings ··· 0937</small><b>$12,905.40</b>
+                </div>
+                <div class="app-account">
+                  <small>Savings ··· 7823</small><b>$3,547.40</b>
+                </div>
+                <div class="app-account loading" aria-hidden="true">
+                  <i style="width: 180px"></i><i style="width: 255px"></i
+                  ><i style="width: 120px"></i>
+                </div>
+              </div>
+            </div>
+            <div class="app-screen" data-screen="settings" hidden>
+              <div class="app-list">
+                <span class="app-row"
+                  ><svg class="mi" viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      d="M15 1H9v2h6V1zm-4 13h2V8h-2v6zm8.03-6.61 1.42-1.42c-.43-.51-.9-.99-1.41-1.41l-1.42 1.42A8.96 8.96 0 0 0 12 4c-4.97 0-9 4.03-9 9s4.02 9 9 9 9-4.03 9-9c0-2.12-.74-4.07-1.97-5.61zM12 20c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"
+                    /></svg
+                  ><span class="app-row-label">Quick Action</span
+                  ><svg
+                    class="mi chevron"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M8.59 16.59 13.17 12 8.59 7.41 10 6l6 6-6 6z"
+                    /></svg
+                ></span>
+                <span class="app-row"
+                  ><svg class="mi" viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19 7.38 20 6.18 20 5 20 4 19 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1z"
+                    /></svg
+                  ><span class="app-row-label">Feed</span
+                  ><svg
+                    class="mi chevron"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M8.59 16.59 13.17 12 8.59 7.41 10 6l6 6-6 6z"
+                    /></svg
+                ></span>
+                <span class="app-row"
+                  ><svg class="mi" viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      d="M19.5 3.5 18 2l-1.5 1.5L15 2l-1.5 1.5L12 2l-1.5 1.5L9 2 7.5 3.5 6 2v14H3v3c0 1.66 1.34 3 3 3h12c1.66 0 3-1.34 3-3V2l-1.5 1.5zM19 19c0 .55-.45 1-1 1s-1-.45-1-1v-3H8V5h11v14zM9 7h6v2H9zm7 0h2v2h-2zm-7 3h6v2H9zm7 0h2v2h-2z"
+                    /></svg
+                  ><span class="app-row-label">Online Statements</span
+                  ><svg
+                    class="mi chevron"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M8.59 16.59 13.17 12 8.59 7.41 10 6l6 6-6 6z"
+                    /></svg
+                ></span>
+                <span class="app-row"
+                  ><svg class="mi" viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      d="M6.99 11 3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z"
+                    /></svg
+                  ><span class="app-row-label">Transfers</span
+                  ><svg
+                    class="mi chevron"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M8.59 16.59 13.17 12 8.59 7.41 10 6l6 6-6 6z"
+                    /></svg
+                ></span>
+                <span class="app-row"
+                  ><svg class="mi" viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      d="M20 5H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h9v-2H4V7h16v5h2V7c0-1.1-.9-2-2-2zm-2.5 9L16 16.5 13.5 18l1.5-2.5-1.5-2.5 2.5 1.5 2.5-1.5-1.5 2.5L18.5 18 16 16.5z"
+                    /></svg
+                  ><span class="app-row-label">Check Deposit</span
+                  ><svg
+                    class="mi chevron"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M8.59 16.59 13.17 12 8.59 7.41 10 6l6 6-6 6z"
+                    /></svg
+                ></span>
+                <span class="app-row"
+                  ><svg class="mi" viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      d="M11 18h2v-2h-2v2zm1-16C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z"
+                    /></svg
+                  ><span class="app-row-label">Help &amp; Support</span
+                  ><svg
+                    class="mi chevron"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M8.59 16.59 13.17 12 8.59 7.41 10 6l6 6-6 6z"
+                    /></svg
+                ></span>
+              </div>
+            </div>
+            <div class="app-screen" data-screen="transactions" hidden>
+              <div class="app-list">
+                <span class="app-row"
+                  ><svg class="mi" viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      d="M6.99 11 3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z"
+                    /></svg
+                  ><span class="app-row-label">Grocery Market</span
+                  ><span class="app-row-value">−$84.12</span></span
+                >
+                <span class="app-row"
+                  ><svg class="mi" viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      d="M6.99 11 3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z"
+                    /></svg
+                  ><span class="app-row-label">Payroll deposit</span
+                  ><span class="app-row-value">+$2,150.00</span></span
+                >
+                <span class="app-row"
+                  ><svg class="mi" viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      d="M6.99 11 3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z"
+                    /></svg
+                  ><span class="app-row-label">City Utilities</span
+                  ><span class="app-row-value">−$96.40</span></span
+                >
+                <span class="app-row"
+                  ><svg class="mi" viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      d="M6.99 11 3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z"
+                    /></svg
+                  ><span class="app-row-label">Coffee House</span
+                  ><span class="app-row-value">−$5.75</span></span
+                >
+                <span class="app-row"
+                  ><svg class="mi" viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      d="M6.99 11 3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z"
+                    /></svg
+                  ><span class="app-row-label">Transfer to Savings</span
+                  ><span class="app-row-value">−$200.00</span></span
+                >
+              </div>
+            </div>
+          </div>
+          <!-- Theme menu behind the header gear, like the sandbox's branding picker; filled by shell.mjs. -->
+          <div
+            class="theme-menu"
+            id="themeMenu"
+            role="menu"
+            aria-label="Theme"
+            hidden
+          ></div>
+          <div id="scrim"></div>
+          <div id="slot"></div>
+          <div id="slotMark" aria-hidden="true"><span>Your aspect</span></div>
+          <nav class="bottomnav" id="bottomnav">
+            <span data-screens="home transactions"
+              ><i class="tab-icon home" aria-hidden="true"></i
+              ><span>Accounts</span></span
+            >
+            <span
+              ><i class="tab-icon transfers" aria-hidden="true"></i
+              ><span>Transfers</span></span
+            >
+            <span
+              ><i class="tab-icon check-deposit" aria-hidden="true"></i
+              ><span>Check Deposit</span></span
+            >
+            <span data-screens="settings"
+              ><i class="tab-icon settings" aria-hidden="true"></i
+              ><span>Settings</span></span
+            >
+          </nav>
+          <div class="home-indicator" aria-hidden="true"></div>
+        </div>
+      </div>
+      <div class="panel">
+        <section class="card" aria-labelledby="checksTitle">
+          <h2 class="card-head" id="checksTitle">
+            Checks <span id="summary" class="badge"></span>
+          </h2>
+          <p class="card-note">
+            Errors stop the app from showing your aspect. Not sure what one
+            means?
+            <a
+              href="https://docs.candescent.com/guides/Building%20Extensions/Aspects/faq/#troubleshooting"
+              target="_blank"
+              rel="noopener"
+              >See Troubleshooting</a
+            >.
+          </p>
+          <ul id="findings"></ul>
+        </section>
+
+        <section
+          class="card"
+          id="settings"
+          hidden
+          aria-labelledby="settingsTitle"
+        >
+          <h2 class="card-head" id="settingsTitle">
+            Customize <span id="settingsState" class="badge"></span>
+          </h2>
+          <div class="card-body">
+            <p class="hint" id="settingsHint"></p>
+            <div class="settings-groups" id="settingsFields"></div>
+            <div class="settings-actions">
+              <label class="control" id="copyNameRow" hidden
+                ><span class="label">Name for your aspect</span>
+                <input id="copyName" spellcheck="false" autocomplete="off" />
+              </label>
+              <button id="saveSettings" type="button" class="btn primary">
+                Save to metadata.json
+              </button>
+              <button id="resetSettings" type="button" class="btn secondary">
+                Discard changes
+              </button>
+            </div>
+            <p class="settings-message" id="settingsMessage" role="status"></p>
+          </div>
+        </section>
+
+        <section class="card use" aria-labelledby="useTitle">
+          <h2 class="card-head" id="useTitle">
+            Next steps
+            <button id="copyAll" type="button" class="copy">Copy all</button>
+          </h2>
+          <div class="card-body">
+            <dl class="meta">
+              <dt>Source</dt>
+              <dd><code id="sourcePath"></code></dd>
+            </dl>
+            <div id="status" role="status"></div>
+            <!-- Steps depend on how the preview was launched (repo or Forge CLI); see renderSteps(). -->
+            <ol class="steps" id="steps"></ol>
+            <details class="devx-values">
+              <summary>
+                Developer Console form values
+                <span class="hint"
+                  >(filled in by the submit; open only if you use the
+                  console)</span
+                >
+              </summary>
+              <table class="form">
+                <tbody id="formRows"></tbody>
+              </table>
+            </details>
+          </div>
+        </section>
+
+        <details class="card activity">
+          <summary class="card-head">Activity log</summary>
+          <div id="log" role="log" aria-live="polite"></div>
+        </details>
+      </div>
+    </main>
+    <script type="module" src="/src/shell.mjs"></script>
+  </body>
+</html>

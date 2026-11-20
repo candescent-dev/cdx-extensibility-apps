@@ -1,104 +1,128 @@
-# CDX Aspects — Sample Scripts
+# Web Aspects
 
-**Aspects** are self-contained JavaScript snippets that the OLB shell executes at page load. They let you inject UI elements (banners, chatbots, notifications), analytics tags, or custom behaviour into the banking platform **without modifying any widget source code**.
+Folder-based web aspects (chatbot and modal) with `metadata.json`, a bootstrap (`aspect-extension.js`), a hosted static loader, and a partner UI page.
 
-> **Test aspects in the OLB Playground before submitting to the platform team.** See [Testing in the OLB Playground](#testing-in-the-olb-playground) below.
-
----
-
-## Sample aspects in this folder
-
-### `contextless_promo_banner.js`
-
-Injects a **dismissible promotional banner** at the top of the OLB page.
-
-- Configurable message, background color, and text color via `BANNER_CONFIG` at the top of the file
-- Includes a close button (×) — users can dismiss the banner for the session
-- No OLB session data required — works as a pure DOM injection
-
-**Customise it:**
-
-```js
-var BANNER_CONFIG = {
-  message: 'Welcome! Check out our new savings rates.',
-  backgroundColor: '#1a73e8',  // change to your brand color
-  textColor: '#ffffff',
-};
+```bash
+pnpm run create-aspect:web                 # 1. make your own web aspect from a sample
+#                                            2. try it in the OLB web playground at http://localhost:4200/home-page
+#                                            3. host the loader and your UI page
+pnpm run submit-to-fi                      # 4. raise the PR in your FI repo
 ```
 
----
+| Sample | Type | Script key | Partner UI |
+| --- | --- | --- | --- |
+| [`chatbot`](chatbot) | Chatbot | `chatbot` | `support-chat-ui.html` |
+| [`modal`](modal) | Modal (host immediate) | `modal` | `card-activation-banner-ui.html` |
 
-### `context_aware_welcome_banner.js`
+Test them in the **OLB Web Playground**, the real host shell at **http://localhost:4200/home-page**.
 
-Injects a **personalised "Welcome back" banner** using the logged-in user's name from the OLB session.
+## Create a web aspect
 
-- Reads `dbk.sessionInfo().userFullName` — requires the OLB platform context (not available standalone)
-- Renders a green banner: *"Welcome back, John Doe!"*
-- Executes after DOM is ready; safe to inject at any point in the page lifecycle
+```bash
+pnpm run create-aspect:web
+```
 
-> **Note:** This aspect uses `window.dbk`, which is populated by the real OLB shell or the OLB Playground mock. It will not work if you open the file directly in a browser outside OLB.
+Pick a template and a Sector from the menus, and type a name. Then choose how to set it up:
 
----
+- **Quick start** (the default): uses the template's defaults, and asks only for what has no default (your UI page URL). There is no web preview to change them in later, so edit `metadata.json`, or submit asks for anything still missing.
+- **Answer each setting now**: one question per setting, with the default already filled in (edit it, or press Enter to keep it). The OIDC client id and redirect URL go together: set one and you are asked for the other. You review everything before anything is written.
 
-### `contextless_chat_bubble.js`
+Either way, it lists what you still need to do before you submit.
 
-Injects a **full-featured floating chat bubble** with a chat UI in the bottom-right corner of the OLB page.
+Without prompts (defaults, plus any values you pass):
 
-- Fixed-position bubble (60×60 px, purple gradient) with open/close animation
-- Full chat panel: message history, typing indicator, bot avatar, close button
-- **Mock AI responses** — pre-scripted replies to simulate a chatbot. Replace the response logic with a real API call to connect a live AI backend
-- Responsive: adapts to mobile viewports
-- No external dependencies — fully self-contained
-- No OLB session data required
+```bash
+pnpm run create-aspect:web -- --template chatbot --name my-bank-chat \
+  --set uiurl=https://ui.my-bank.com/chat.html --yes
+```
 
-**To connect a real AI backend**, find the `sendMessage` function and replace the `setTimeout` mock with a `fetch` call to your AI service.
+`--template` accepts `chatbot` or `modal`. `--customize` goes straight to the one-question-per-setting path. `pnpm run create-aspect` asks web or mobile first. This writes `aspects/web/<name>/`. The extension, loader, and UI page are copied from the sample unchanged.
 
----
+Your aspect's Script Name is its name without dashes (`my-bank-chat` → `mybankchat`). The static loader key (`ASPECT_PROPERTY_WEB_STATICLOADERKEY`) defaults to that Script Name. If you change it, every `ASPECT_SCRIPT_<key>_*` property uses the new key, so `loadSecureExternalScript` still finds `ASPECT_SCRIPT_<key>_URL`. The static loader URL is optional at create; submit asks for it, adds its origin to `script-src`, and takes the SRI from it.
 
-## Integration
+## Files in each sample
 
-### On the real OLB
+| File | What it is |
+| --- | --- |
+| `aspect-extension.js` | **Bootstrap.** Runs in the extension sandbox and calls `dbk.loadSecureExternalScript`. Submit copies it to your FI repo as `aspects/web/<name>/<name>.js`. |
+| `static-loader.js` | **Static loader** that you host. It mounts the partner UI iframe and relays messages to the extension. Never change a published file; publish a new version instead. |
+| `support-chat-ui.html` / `card-activation-banner-ui.html` | **Partner UI page.** You host it. |
+| `metadata.json` | Developer Console fields. Submit puts this JSON in the PR body. |
+| `template.json` | Questions for this template (values the author must fill in, such as UI URL and SRI), so submit can ask for anything still missing. |
 
-Aspects are registered in the **NextGen Admin Portal** by the Candescent platform team. To have an aspect deployed to production:
+## Open the playground
 
-1. Finalise and test your aspect script (use the Playground first — see below)
-2. Provide the script to the **Candescent platform team**
-3. The team reviews and registers it in the Admin Portal under `shell.aspects`
-4. The aspect executes on every post-login page load for the configured institution
+From the repo root:
 
-### Testing in the OLB Playground
+```bash
+cd playground/web
+docker compose pull
+docker compose up
+```
 
-Test your aspects against the real OLB shell locally before submitting — no platform team involvement needed.
+When the logs show the playground is ready, open **http://localhost:4200/home-page**.
 
-> **Full setup guide:** [playground/web/README.md](../../../playground/web/README.md)
+Full Docker setup: [playground/web/README.md](../../../playground/web/README.md).
 
-#### Option A — Aspect Manager UI (recommended)
+## Test a web aspect
 
-1. Start the playground: `docker compose pull && docker compose up`
-2. Open **http://localhost:4200/playground** → click the **+** button in the top-right
-3. Paste the script contents into the **"Add New"** tab, give it a name, click **Add & Reload**
-4. The OLB page reloads and the aspect executes immediately
+1. On **http://localhost:4200/home-page**, click **Add Aspect** (home toolbar) to open **Manage Aspects**.
+2. The playground already has sample chatbot and modal records. They start **disabled**. Turn **isEnabledWeb** on for the one you want, then wait for the reload.
+3. To try **your** aspect (or a sample from this folder) instead, click **New submission** and fill the form from that folder's `metadata.json`:
 
-Refresh **http://localhost:4200** after injecting — the aspect runs on each page load.
+   | Playground field | Where it comes from |
+   | --- | --- |
+   | Type | `ASPECT_TYPE` (`chatbot` or `modal`) |
+   | Name | `metadata.json` `"name"` |
+   | Extension script | Paste `aspect-extension.js`, or use **standard** |
+   | Script key | `ASPECT_PROPERTY_WEB_STATICLOADERKEY` (the `<key>` in `ASPECT_SCRIPT_<key>_URL`) |
+   | Loader | Paste `static-loader.js`, **or** the hosted URL + SRI from metadata |
+   | scriptData | Each `ASPECT_SCRIPT_<key>_DATA_*` value (`uiurl`, `configurl`, `uiorigin`, and so on) |
+   | Display authority / frequency | `ASPECT_PROPERTY_WEB_DISPLAYAUTHORITY` and `ASPECT_PROPERTY_WEB_FREQUENCY` |
 
----
+4. Save. The shell reloads. Confirm the chatbot launcher or modal on **http://localhost:4200/home-page**.
 
-## Writing your own aspect
+Aspects are in-memory only. `docker compose down && docker compose up` clears anything you added.
 
-Key constraints:
+## Submit to the FI repo
 
-| Rule | Why |
-|------|-----|
-| Must be a self-contained IIFE `(function(){ ... })()` | Prevents variable leakage into the global scope |
-| Use `var` not `let`/`const` for maximum browser compatibility | Aspects run in the host page's JS context |
-| Do not `import` or `require` | No module bundler available — inline everything or load via `<script>` tag |
-| Access user data via `window.dbk.sessionInfo()` | This is the platform's API for session context |
-| Do not rely on widget internals | Widgets are loaded asynchronously via Module Federation — DOM order is not guaranteed |
+After it looks right in the playground:
 
-**Available platform data (`window.dbk.sessionInfo()`):**
+```bash
+pnpm run submit-to-fi
+```
 
-| Field | Example value |
-|-------|--------------|
-| `userFullName` | `"John Doe"` |
-| `diId` | `"00516"` |
-| `loginId` | `"customer1"` |
+Pick your aspect from the menu (or pass `--project my-bank-chat`). Before touching the FI repo, submit asks for anything still missing, downloads the hosted loader to take its SRI, and checks every value. It copies only the bootstrap to `aspects/web/<name>/<name>.js` in your FI repo. Details: [repository root README](../../../README.md#submit-to-fi-extensions-repo).
+
+## Test plan (submit metadata)
+
+Run once per template against a test FI repo (or `--local-path` to a bare clone). Host `static-loader.js` on an **https** URL before submit.
+
+**Chatbot**
+
+```bash
+pnpm run create-aspect:web -- --template chatbot --name devex-chat-e2e --set uiurl=https://ui.example.com/chat.html --yes
+pnpm run submit-to-fi -- --project devex-chat-e2e --loader-url https://cdn.example.com/devex-chat-e2e/static-loader.js --fi-url <test-fi> --yes
+```
+
+In the PR body `Metadata:` block, confirm:
+
+- `ASPECT_PROPERTY_WEB_PAGE` is `/app/home`
+- `ASPECT_PROPERTY_WEB_MOUNTSTRATEGY` is **not** in the metadata (web aspects do not set it)
+- `ASPECT_PROPERTY_WEB_STATICLOADERKEY` is `devexchate2e` (the Script Name: the aspect name without dashes)
+- `ASPECT_SCRIPT_devexchate2e_URL` / `_SRI` are set from the hosted loader
+- `ASPECT_SCRIPT_devexchate2e_DATA_uiurl` matches the create `--set` value
+
+**Modal**
+
+```bash
+pnpm run create-aspect:web -- --template modal --name devex-modal-e2e --set uiurl=https://ui.example.com/banner.html --yes
+pnpm run submit-to-fi -- --project devex-modal-e2e --loader-url https://cdn.example.com/devex-modal-e2e/static-loader.js --fi-url <test-fi> --yes
+```
+
+Confirm the same page and key properties, plus modal defaults:
+
+- `ASPECT_PROPERTY_WEB_FREQUENCY` is `oncePerSession`
+- `ASPECT_SCRIPT_devexmodale2e_DATA_bannerheight` is `320px`
+
+The FI repo should contain only `aspects/web/<name>/<name>.js` (bootstrap from `aspect-extension.js`).

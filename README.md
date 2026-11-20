@@ -80,7 +80,10 @@ After generate, do **not** run `pnpm run ci:mobile` (lockfile will be out of syn
 | **Mobile Features** | Generated React Native features | `features/mobile/` |
 | **Mobile Samples** | Reference packages (investment-portfolio, agent-feature) | `samples/mobile/` |
 | **Mobile Sandbox** | Expo test app for running mobile packages locally | [playground/mobile-sandbox/README.md](playground/mobile-sandbox/README.md) |
+| **Mobile Aspects** | V2 Chatbot and Modal samples; `pnpm run create-aspect:mobile` and `pnpm run submit-to-fi` raise the FI repo PR | [samples/mobile/aspects/README.md](samples/mobile/aspects/README.md) |
+| **Mobile Aspect Preview** | Browser preview and conformance check for mobile V2 aspects — no simulator needed | [playground/aspects-mobile/README.md](playground/aspects-mobile/README.md) |
 | **Web Playground** | Docker image — run a full local OLB instance to test your web widgets against the real shell | [playground/web/README.md](playground/web/README.md) |
+| **Web Aspects** | Chatbot/modal samples; `pnpm run create-aspect:web` and `pnpm run submit-to-fi`; test on the OLB playground `/home-page` | [samples/web/aspects/README.md](samples/web/aspects/README.md) |
 
 **Technical note:** Web and mobile share the same SDK surface (`@cdx-extensions/di-sdk`); packaging and hosting differ (Module Federation vs npm packages). Pinned dependency versions are in **[Shared dependencies](#shared-dependencies)** below.
 
@@ -173,13 +176,14 @@ This is a convenience wrapper around `node tools/scripts/submit-to-fi-repo.js` �
 ### What it does
 
 1. **Finds the project** in this repo by name (web widget, mobile widget, mobile feature, or web aspect).
-2. **Clones or reuses** a local copy of your FI extensions repo.
-3. **Syncs source files** into the matching path in the FI repo (excludes `node_modules`, `dist`, `.nx`, `coverage`, `.expo`).
-4. **Validates mobile packages** with `pnpm install` in the synced folder, updates root `pnpm-lock.yaml` when needed, and verifies with `pnpm install --frozen-lockfile` at the FI repo root.
-5. **Commits and pushes** the synced project path and root `pnpm-lock.yaml` when the lockfile changed (not build artifacts or cache).
-6. **Creates or updates a PR** in the FI repo via `gh`.
+2. **For web aspects**, checks the folder first (hosted loader URL, SRI from served bytes, template values). Errors stop the submit before git.
+3. **Clones or reuses** a local copy of your FI extensions repo.
+4. **Syncs source files** into the matching path in the FI repo (excludes `node_modules`, `dist`, `.nx`, `coverage`, `.expo`). Web aspects copy only the bootstrap to `aspects/web/<name>/<name>.js`.
+5. **Validates mobile packages** with `pnpm install` in the synced folder, updates root `pnpm-lock.yaml` when needed, and verifies with `pnpm install --frozen-lockfile` at the FI repo root.
+6. **Commits and pushes** the synced project path and root `pnpm-lock.yaml` when the lockfile changed (not build artifacts or cache).
+7. **Creates or updates a PR** in the FI repo via `gh`.
 
-If the project has a `metadata.json`, its contents are added to the PR description.
+Web aspect PRs use a `Metadata:\n{...}` body that the backend parses. Other project types use a short template description.
 
 ### Supported project types
 
@@ -188,7 +192,7 @@ If the project has a `metadata.json`, its contents are added to the PR descripti
 | Web widget | `widgets/web/`, `samples/web/widgets/` |
 | Mobile widget | `widgets/mobile/`, `samples/mobile/widgets/` |
 | Mobile feature | `features/mobile/`, `samples/mobile/feature/` |
-| Web aspect | `samples/web/aspects/` |
+| Web aspect | `aspects/web/`, `samples/web/aspects/` |
 
 If the same name exists in more than one location, the script prompts you to choose.
 
@@ -215,6 +219,9 @@ pnpm run submit-to-fi -- \
 | `--local-path` | Path to an existing FI repo clone, or a parent folder (cloned if missing) |
 | `--project` | Widget, feature, or aspect folder name |
 | `--new-pr` | Always create a new PR instead of updating an existing one |
+| `--loader-url` | Hosted https URL of the web aspect static loader |
+| `--yes` | Non-interactive web aspect submit (no prompts; fails if values are missing) |
+| `--accept-hosted` | Submit even when the hosted loader differs from the local file |
 
 ### Requirements
 
@@ -306,7 +313,7 @@ Mobile sample/template packages should declare `react` / `react-native` as **pee
 | **[samples/mobile/README.md](samples/mobile/README.md)** | Mobile widgets and features, Nx and tsup, creating mobile widgets, links to the sandbox |
 | **[playground/mobile-sandbox/README.md](playground/mobile-sandbox/README.md)** | Expo **mobile sandbox**: prerequisites, running on iOS/Android, how samples are wired, Metro and troubleshooting |
 | **[playground/web/README.md](playground/web/README.md)** | **OLB web playground**: Docker image setup, connecting your widget, available slots, runtime API, troubleshooting |
-| **[samples/web/aspects/README.md](samples/web/aspects/README.md)** | **Aspect sample scripts**: what each script does, how to inject into real OLB (via platform team) and OLB Playground (via curl or UI) |
+| **[samples/web/aspects/README.md](samples/web/aspects/README.md)** | **Web aspects**: chatbot and modal samples, OLB playground at `/home-page`, submit-to-fi |
 
 Start from the area you are building (web or mobile); follow that README end-to-end before changing build or registry settings.
 

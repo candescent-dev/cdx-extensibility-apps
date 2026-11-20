@@ -1,0 +1,271 @@
+{
+  "$comment": "Template schema read by `pnpm run create-aspect:mobile`, `pnpm run submit-to-fi`, the Mobile Aspect Preview and its checker. 'property' fields become ASPECT_PROPERTY_MOBILE_* values (the aspect extension reads the sign-in and timeout ones from dbk.getAspectConfig().properties); 'data' fields become one Data Attribute each (ASPECT_SCRIPT_<name>_DATA_<dataKey>).",
+  "id": "modal",
+  "type": "modal",
+  "title": "Promotion Sheet",
+  "description": "A bottom sheet the partner UI asks to open on page load. The loader frames your UI (uiUrl) and, optionally, hands a verified identity to your backend (OIDC).",
+  "scriptKey": "modal",
+  "loaderFile": "static-loader.js",
+  "uiFile": "promotion-sheet-ui.html",
+  "fixed": {
+    "ASPECT_PROPERTY_MOBILE_SANDBOXDIRECTIVES": "allow-scripts allow-same-origin",
+    "ASPECT_PROPERTY_MOBILE_PLACEMENTID": "bottom_sheet",
+    "ASPECT_PROPERTY_MOBILE_DISPLAYAUTHORITY": "partner_delegated",
+    "ASPECT_PROPERTY_MOBILE_MOUNTSTRATEGY": "on_route_match",
+    "ASPECT_PROPERTY_MOBILE_TRIGGER": "pageLoad",
+    "ASPECT_PROPERTY_MOBILE_FREQUENCY": "always"
+  },
+  "csp": {
+    "script-src": ["'self'", "'nonce-aspect'"],
+    "style-src": ["'self'", "'unsafe-inline'"],
+    "img-src": ["'self'", "data:"],
+    "connect-src": ["'self'"],
+    "frame-src": ["'self'"]
+  },
+  "fields": [
+    {
+      "key": "page",
+      "target": "property",
+      "property": "ASPECT_PROPERTY_MOBILE_PAGE",
+      "label": "Show on screen",
+      "type": "choice",
+      "options": [
+        "/app/home",
+        "/app/home/settings/overview",
+        "/app/home/olb/accounts"
+      ],
+      "optionLabels": {
+        "/app/home": "Home Page",
+        "/app/home/settings/overview": "My Settings Page",
+        "/app/home/olb/accounts": "My Accounts Page"
+      },
+      "required": true,
+      "default": "/app/home",
+      "group": "customer",
+      "help": "The app screen the modal appears on."
+    },
+    {
+      "key": "size",
+      "target": "property",
+      "property": "ASPECT_PROPERTY_MOBILE_PLACEMENTSIZE",
+      "label": "Sheet size",
+      "type": "choice",
+      "options": ["small", "medium", "large"],
+      "default": "medium",
+      "group": "customer",
+      "help": "How much of the screen the sheet covers. Ignored for a centred dialog.",
+      "optionLabels": {
+        "small": "Small (about 40% of the screen)",
+        "medium": "Medium (about 60%)",
+        "large": "Large (full height)"
+      }
+    },
+    {
+      "key": "title",
+      "target": "data",
+      "label": "Headline",
+      "type": "text",
+      "maxLength": 60,
+      "required": true,
+      "default": "Go paperless",
+      "dataKey": "title",
+      "group": "customer",
+      "help": "Up to 60 characters."
+    },
+    {
+      "key": "body",
+      "target": "data",
+      "label": "Message",
+      "type": "text",
+      "maxLength": 300,
+      "required": true,
+      "default": "Switch to e-statements.",
+      "dataKey": "body",
+      "group": "customer",
+      "help": "Shown under the headline. Up to 300 characters."
+    },
+    {
+      "key": "ctaText",
+      "target": "data",
+      "label": "Button text",
+      "type": "text",
+      "maxLength": 30,
+      "required": true,
+      "default": "Learn more",
+      "dataKey": "ctatext",
+      "group": "customer",
+      "help": "The main button. Up to 30 characters."
+    },
+    {
+      "key": "ctaUrl",
+      "navigates": true,
+      "csp": "frame-src",
+      "target": "data",
+      "label": "Button link",
+      "type": "url",
+      "required": true,
+      "default": "https://www.example-fi.com/estatements",
+      "productionHint": "The button link still points at example-fi.com. Enter the page the button should open.",
+      "dataKey": "ctaurl",
+      "group": "customer",
+      "help": "Where the button goes (an https page). Its host is added to the CSP frame-src, so the app opens it in the phone's browser."
+    },
+    {
+      "key": "accentColor",
+      "target": "data",
+      "label": "Brand colour",
+      "type": "color",
+      "required": true,
+      "default": "#1a6cda",
+      "dataKey": "accentcolor",
+      "group": "customer",
+      "help": "Used for buttons and the header."
+    },
+    {
+      "key": "uiUrl",
+      "target": "data",
+      "label": "Your UI page URL",
+      "type": "url",
+      "required": true,
+      "allowLocalHttp": true,
+      "default": "http://127.0.0.1:4310/aspects/modal/promotion-sheet-ui.html",
+      "csp": "frame-src",
+      "productionHint": "uiUrl points at the local preview copy of promotion-sheet-ui.html. Host the UI page on your https origin before going to production.",
+      "dataKey": "uiurl",
+      "group": "your-pages",
+      "help": "Where you host your copy of the UI page (https). The default works on this machine only."
+    },
+    {
+      "key": "oidcClientId",
+      "target": "property",
+      "property": "ASPECT_PROPERTY_MOBILE_OIDCCLIENTID",
+      "label": "OIDC client id",
+      "type": "text",
+      "maxLength": 128,
+      "required": false,
+      "default": "",
+      "pattern": "^[A-Za-z0-9._~-]{1,128}$",
+      "requires": "redirectUrl",
+      "group": "sign-in",
+      "help": "The public client id from your Integration PM. Never enter the client secret.",
+      "links": [
+        {
+          "label": "Where the client id comes from",
+          "url": "https://docs.candescent.com/guides/OIDC%20Integration/overview/#4-integration-testing-in-fi-environments"
+        }
+      ]
+    },
+    {
+      "key": "redirectUrl",
+      "target": "property",
+      "property": "ASPECT_PROPERTY_MOBILE_REDIRECTURL",
+      "label": "Redirect URL (your backend)",
+      "type": "url",
+      "required": false,
+      "default": "",
+      "csp": "connect-src",
+      "allowLocalHttp": true,
+      "requires": "oidcClientId",
+      "group": "sign-in",
+      "help": "Your backend endpoint (https). The aspect POSTs the one-time sign-in code here; your backend exchanges it for tokens and answers with its own session.",
+      "links": [
+        {
+          "label": "Token exchange",
+          "url": "https://docs.candescent.com/guides/OIDC%20Integration/technical-reference/#token-exchange"
+        },
+        {
+          "label": "Test your credentials",
+          "url": "https://docs.candescent.com/guides/OIDC%20Integration/technical-reference/#testing-your-credentials"
+        }
+      ]
+    },
+    {
+      "key": "configUrl",
+      "target": "data",
+      "label": "Remote config URL",
+      "type": "url",
+      "required": false,
+      "default": "",
+      "csp": "connect-src",
+      "dataKey": "configurl",
+      "group": "advanced",
+      "help": "Optional JSON file that can switch the aspect off without resubmitting."
+    },
+    {
+      "key": "tokenTimeoutMs",
+      "target": "property",
+      "property": "ASPECT_PROPERTY_MOBILE_TOKENTIMEOUTMS",
+      "label": "Sign-in code timeout (ms)",
+      "type": "text",
+      "required": true,
+      "default": "5000",
+      "pattern": "^[1-9][0-9]{2,5}$",
+      "group": "advanced",
+      "help": "How long the aspect waits for the app to return the sign-in code. The app sends nothing when it refuses the request, so this is the only way that failure shows. Keep this and the redirect timeout under 10 000 ms together if your page waits for sign-in before it opens."
+    },
+    {
+      "key": "redirectTimeoutMs",
+      "target": "property",
+      "property": "ASPECT_PROPERTY_MOBILE_REDIRECTTIMEOUTMS",
+      "label": "Redirect URL timeout (ms)",
+      "type": "text",
+      "required": true,
+      "default": "5000",
+      "pattern": "^[1-9][0-9]{2,5}$",
+      "group": "advanced",
+      "help": "How long the aspect waits for your backend to answer with a session."
+    },
+    {
+      "key": "refreshIntervalMs",
+      "target": "property",
+      "property": "ASPECT_PROPERTY_MOBILE_REFRESHINTERVALMS",
+      "label": "Minimum time between sign-in refreshes (ms)",
+      "type": "text",
+      "required": true,
+      "default": "30000",
+      "pattern": "^[1-9][0-9]{2,5}$",
+      "group": "advanced",
+      "help": "A refresh your page asks for sooner than this returns the last result."
+    },
+    {
+      "key": "configTimeoutMs",
+      "target": "property",
+      "property": "ASPECT_PROPERTY_MOBILE_CONFIGTIMEOUTMS",
+      "label": "Remote config timeout (ms)",
+      "type": "text",
+      "required": true,
+      "default": "8000",
+      "pattern": "^[1-9][0-9]{2,5}$",
+      "group": "advanced",
+      "help": "How long the aspect waits for the remote config file before it gives up and shows nothing."
+    }
+  ],
+  "groups": [
+    {
+      "id": "customer",
+      "title": "What your customers see"
+    },
+    {
+      "id": "your-pages",
+      "title": "Your pages and backend",
+      "help": "promotion-sheet-ui.html is a reference page. Host your own copy, styled to follow FDS."
+    },
+    {
+      "id": "sign-in",
+      "title": "Customer sign-in (optional)",
+      "help": "Optional. Fill in both fields so your backend knows who the customer is.",
+      "links": [
+        {
+          "label": "Sign-in for mobile aspects (native bridge)",
+          "url": "https://docs.candescent.com/guides/Building%20Extensions/Aspects/Mobile/technical-reference/#authentication-via-native-bridge"
+        }
+      ],
+      "collapsed": true
+    },
+    {
+      "id": "advanced",
+      "title": "Advanced",
+      "collapsed": true
+    }
+  ]
+}
